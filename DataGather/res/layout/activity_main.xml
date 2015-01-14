@@ -8,20 +8,64 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.datagather.MainActivity" >
 
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+        <ToggleButton
+            android:id="@+id/toggleButton_gatherGPSData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignTop="@+id/t_gatherGPSData"
+            android:layout_marginRight="33dp"
+            android:text="ToggleButton" />
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView2"
-        android:layout_below="@+id/textView2"
-        android:layout_marginTop="16dp"
-        android:text="TESTING UP IN HERE, YO!"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        <TextView
+            android:id="@+id/t_gatherGPSData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="21dp"
+            android:layout_marginTop="47dp"
+            android:text="Gather GPS Data"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            android:id="@+id/t_currentLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/t_gatherGPSData"
+            android:layout_below="@+id/toggleButton_gatherGPSData"
+            android:text="Current Location"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+ 		
+ 		<TextView
+            android:id="@+id/t_longetude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/t_latitude"
+            android:layout_below="@+id/t_currentLocation"
+            android:layout_marginTop="14dp"
+            android:text="------"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+ 		
+        <TextView
+            android:id="@+id/t_latitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/t_altitude"
+            android:layout_below="@+id/t_longetude"
+            android:text="------"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/t_altitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignRight="@+id/t_currentLocation"
+            android:layout_below="@+id/t_latitude"
+            android:layout_marginRight="28dp"
+            android:text="------"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+       
 
 </RelativeLayout>

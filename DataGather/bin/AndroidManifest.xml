@@ -24,15 +24,6 @@
             </intent-filter>
         </activity>
         
-         <receiver android:name="com.example.datagather.LocationReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.example.datagather.ACTION_LOCATION"/>
-            </intent-filter>
-        </receiver>
-        
-        
-        
     </application>
 
 </manifest>

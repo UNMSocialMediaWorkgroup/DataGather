@@ -24,15 +24,6 @@
             </intent-filter>
         </activity>
         
-         <receiver android:name="com.example.datagather.LocationReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.bignerdranch.android.runtracker.ACTION_LOCATION"/>
-            </intent-filter>
-        </receiver>
-        
-        
-        
     </application>
 
 </manifest>

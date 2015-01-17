@@ -25,13 +25,14 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int action_settings=0x7f080006;
-        public static final int t_altitude=0x7f080005;
-        public static final int t_currentLocation=0x7f080002;
-        public static final int t_gatherGPSData=0x7f080001;
-        public static final int t_latitude=0x7f080004;
-        public static final int t_longetude=0x7f080003;
-        public static final int toggleButton_gatherGPSData=0x7f080000;
+        public static final int action_settings=0x7f080007;
+        public static final int t_altitudeTextView=0x7f080004;
+        public static final int t_gpsTitleTextView=0x7f080000;
+        public static final int t_lastUpdatedTextView=0x7f080005;
+        public static final int t_latitudeTextView=0x7f080002;
+        public static final int t_longitudeTextView=0x7f080003;
+        public static final int table_GPSData=0x7f080001;
+        public static final int tb_gatherGPSData=0x7f080006;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;

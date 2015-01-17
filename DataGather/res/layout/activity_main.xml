@@ -67,26 +67,90 @@
             android:layout_height="wrap_content"
             />
     </TableRow>
-</TableLayout> 
-<TableLayout
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content">
     <TableRow>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="right"
             android:paddingRight="5sp"
-            android:text="Gather GPS Data"
+            android:text="Points Saved"
             />
-         <ToggleButton android:id="@+id/tb_gatherGPSData"
+        <TextView android:id="@+id/t_pointsSavedTextView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            />
+    </TableRow>
+</TableLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <ToggleButton
+            android:id="@+id/tb_gatherGPSData"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onToggleClicked_gatherGPSData"/>
-    </TableRow>
-    
-</TableLayout>
+            android:onClick="onToggleClicked_gatherGPSData"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="left"
+            android:paddingRight="5sp"
+            android:text="Capture GPS Data" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/btn_view"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/btn_send"
+            android:onClick="onClickedViewGPSDataPoints"
+            android:text="View" />
+
+        <Button
+            android:id="@+id/btn_delete"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/btn_view"
+            android:onClick="onClickedClearGPSDataPoints"
+            android:text="Delete" />
+
+        <Button
+            android:id="@+id/btn_send"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="75dp"
+            android:text="Send" />
+
+       
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+    </LinearLayout>
+
+ 
+
+
+
 </LinearLayout>
 
 

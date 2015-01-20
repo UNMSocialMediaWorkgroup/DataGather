@@ -288,28 +288,34 @@ public class MainActivity extends Activity {
 	}
 
 	public void packDataGPSData() {
-		Toast.makeText(self, "Packing Data", Toast.LENGTH_SHORT).show();
+
 		ArrayList<DataPointGPS> gpspoints = db.getAllGPSDataPoints(); 
-		
-		
+				
 		JSONObject jsonGPSData = new JSONObject();
-		JSONArray jsonGPSPoints = new JSONArray(gpspoints);
+		//JSONArray jsonGPSPoints = new JSONArray(gpspoints);
+		ArrayList<JSONObject> jsonGPSPoints = new ArrayList<JSONObject>();
 		
         try {
 			jsonGPSData.accumulate("phonenumber", thisPhoneNumber);
+			
+			for (DataPointGPS gpspoint : gpspoints)
+			{
+				jsonGPSPoints.add(gpspoint.getJsonObject());
+			}
+
 			jsonGPSData.accumulate("data", jsonGPSPoints);
-		
-        
-        
+
         } catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        jsonGPSData.toString();
         
         HttpAsyncTask httptask = new HttpAsyncTask(this);
         httptask.setJsonObjectToPost(jsonGPSData);
-        txtview_httpReult.setText( jsonGPSData.toString());
+        
+        txtview_httpReult.setText( ">>"+jsonGPSData.toString());
+
+        Toast.makeText(self, "WTF NOT EXICUTING", Toast.LENGTH_LONG).show();
         httptask.execute(dataPostUrl);
 	}
 	

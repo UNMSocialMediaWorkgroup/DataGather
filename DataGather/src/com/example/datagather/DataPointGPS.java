@@ -1,5 +1,6 @@
 package com.example.datagather;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class DataPointGPS {
@@ -35,12 +36,20 @@ public class DataPointGPS {
 		this.time = time;
 	}
 	
+	public JSONObject getJsonObject() throws JSONException
+	{
+		JSONObject jsonGPSpoint = new JSONObject();
+		jsonGPSpoint.accumulate("lon", longitude);
+		jsonGPSpoint.accumulate("lat", latitude);
+		jsonGPSpoint.accumulate("alt", altitude);
+		jsonGPSpoint.accumulate("time", time);
+		return jsonGPSpoint;
+		
+	}
 	
 	@Override
 	public String toString() {
-		
-		
-		return "{\"longitude\":\"" + longitude + "\",\"latitude\":\"" + latitude + "\",\"altitude\":\"" + altitude + "\",\"time\":\"" + time + "\"}";
+		return "{\"lon\":\"" + longitude + "\",\"lat\":\"" + latitude + "\",\"alt\":\"" + altitude + "\",\"time\":\"" + time + "\"}";
 	}
 	
 	

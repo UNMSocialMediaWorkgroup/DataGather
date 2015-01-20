@@ -1,5 +1,20 @@
 package com.example.datagather;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -13,7 +28,11 @@ import android.location.GpsStatus.Listener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.util.Log;
@@ -35,24 +54,29 @@ public class MainActivity extends Activity {
 	private LocationManager locationManager;
 	private LocationListener locationListener;
 
+	
+
+	private boolean activityVisible;
+	private boolean gpsProviderEnabled = true;
+	private boolean networkConnected   = false;
+	private boolean capturingGPSData = false;
+	private  String dataPostUrl = "http://174.56.72.130:3000/submit";
+	private  String thisPhoneNumber = "";
+
+	DatabaseHandler db;
+	private int numberOfSavedGPSDataPoints = 0;
+
 	private Location lastLocation;
 	private Time time = new Time();
 	private long timeOfLastSave_MiliSec = 0;
 	private long saveFrequency_MiliSec = 5000;
 	private int maxGPSDataPoints = 50000;
-
-	private boolean activityVisible;
-	private boolean gpsProviderEnabled = true;
-	private boolean capturingGPSData = false;
-
-	DatabaseHandler db;
-	private int numberOfSavedGPSDataPoints = 0;
-
+	
 	private ToggleButton tbtn_gps;
 	private TableLayout gpstable;
 	private TextView txtview_CurrentLocationTitle;
-	private TextView txtview_CurrentLon, txtview_CurrentLat,
-			txtview_CurrentAlt, txtview_CurrentTime, txtview_PointsSaved;
+	private TextView txtview_CurrentLon, txtview_CurrentLat, txtview_CurrentAlt, txtview_CurrentTime, txtview_PointsSaved;
+	private TextView txtview_httpReult;
 
 	void onLocationReceived(Location loc) {
 		lastLocation = loc;
@@ -74,15 +98,12 @@ public class MainActivity extends Activity {
 				// --Turn off capture
 				turnOffGPSDataCapture();
 				tbtn_gps.setChecked(false);
-				txtview_CurrentLocationTitle
-						.setText("GPS Location - DATA FULL!");
-				txtview_CurrentLocationTitle.setTextColor(Color.argb(255, 150,
-						0, 0));
+				txtview_CurrentLocationTitle.setText("GPS Location - DATA FULL!");
+				txtview_CurrentLocationTitle.setTextColor(Color.argb(255, 150, 0, 0));
 
 				// ---Build Alert
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setMessage("You have used up all your space for GPS Data ("
-						+ maxGPSDataPoints
+				builder.setMessage("You have used up all your space for GPS Data (" + maxGPSDataPoints
 						+ " data Points).\nYou must Send your data or Delete it before continuing to capture.");
 				builder.setTitle("GPS Data");
 				builder.setPositiveButton("Ok", null);
@@ -106,26 +127,26 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		// ----------------------------------------------------------
+		// Get Telephone Number for ID. 
+		TelephonyManager tMgr = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
+		thisPhoneNumber = tMgr.getLine1Number();
+		
+		
+		// ----------------------------------------------------------
 		// Location Manager
-		locationManager = (LocationManager) this
-				.getSystemService(Context.LOCATION_SERVICE);
+		locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 		locationListener = new LocationListener() {
 
 			// Called when a new location is found by the network location
 			// provider.
 			public void onLocationChanged(Location location) {
-				Log.d(TAG,
-						"Got location from " + location.getProvider() + ": "
-								+ location.getLatitude() + ", "
-								+ location.getLongitude());
+				Log.d(TAG, "Got location from " + location.getProvider() + ": " + location.getLatitude() + ", " + location.getLongitude());
 				onLocationReceived(location);
 			}
 
-			public void onStatusChanged(String provider, int status,
-					Bundle extras) {
+			public void onStatusChanged(String provider, int status, Bundle extras) {
 				Log.d(TAG, "Status Changed " + provider + " " + status);
-				Toast.makeText(self, provider + " " + status, Toast.LENGTH_LONG)
-						.show();
+				Toast.makeText(self, provider + " " + status, Toast.LENGTH_LONG).show();
 			}
 
 			public void onProviderEnabled(String provider) {
@@ -134,8 +155,7 @@ public class MainActivity extends Activity {
 					gpsProviderEnabled = true;
 				}
 				updateGPSViewStateStyle();
-				Toast.makeText(self, provider + " enabled", Toast.LENGTH_LONG)
-						.show();
+				Toast.makeText(self, provider + " enabled", Toast.LENGTH_LONG).show();
 			}
 
 			public void onProviderDisabled(String provider) {
@@ -145,8 +165,7 @@ public class MainActivity extends Activity {
 					gpsProviderEnabled = false;
 				}
 				updateGPSViewStateStyle();
-				Toast.makeText(self, provider + " disabled", Toast.LENGTH_LONG)
-						.show();
+				Toast.makeText(self, provider + " disabled", Toast.LENGTH_LONG).show();
 			}
 		};
 
@@ -157,14 +176,11 @@ public class MainActivity extends Activity {
 
 		// ----------------------------------------------------------
 		// Get Stored data
-		SharedPreferences mostRecentData = getSharedPreferences(
-				DATA_PREFS_NAME, 0);
-		float lastupdated_longitude = mostRecentData
-				.getFloat("longitude", 0.0f);
+		SharedPreferences mostRecentData = getSharedPreferences(DATA_PREFS_NAME, 0);
+		float lastupdated_longitude = mostRecentData.getFloat("longitude", 0.0f);
 		float lastupdated_latitude = mostRecentData.getFloat("latitude", 0.0f);
 		float lastupdated_altitude = mostRecentData.getFloat("altitude", 0.0f);
-		String lastupdated_time = mostRecentData.getString("time",
-				"--:--:-- --/--/----");
+		String lastupdated_time = mostRecentData.getString("time", "--:--:-- --/--/----");
 
 		// ----------------------------------------------------------
 		// set up UI
@@ -176,6 +192,7 @@ public class MainActivity extends Activity {
 		txtview_CurrentAlt = (TextView) findViewById(R.id.t_altitudeTextView);
 		txtview_CurrentTime = (TextView) findViewById(R.id.t_lastUpdatedTextView);
 		txtview_PointsSaved = (TextView) findViewById(R.id.t_pointsSavedTextView);
+		txtview_httpReult   = (TextView) findViewById(R.id.t_httpResultTextView);
 
 		// ----------------------------------------------------------
 		// fill UI with saved old data.
@@ -184,6 +201,14 @@ public class MainActivity extends Activity {
 		txtview_CurrentAlt.setText(Float.toString(lastupdated_altitude) + "m");
 		txtview_CurrentTime.setText(lastupdated_time);
 		txtview_PointsSaved.setText("" + numberOfSavedGPSDataPoints);
+
+		// ----------------------------------------------------------
+		// check if you are connected or not
+		if (isConnected()) {
+			Toast.makeText(self, "Network : Connected", Toast.LENGTH_LONG).show();
+		} else {
+			Toast.makeText(self, "Network : Not Connected", Toast.LENGTH_LONG).show();
+		}
 
 	}
 
@@ -203,8 +228,7 @@ public class MainActivity extends Activity {
 		if (lastLocation != null) {
 			// save the Last location into Shared Preferences so they can be
 			// displayed the next time the app starts
-			SharedPreferences mostRecentData = getSharedPreferences(
-					DATA_PREFS_NAME, 0);
+			SharedPreferences mostRecentData = getSharedPreferences(DATA_PREFS_NAME, 0);
 			SharedPreferences.Editor editor = mostRecentData.edit();
 
 			editor.putFloat("longitude", (float) lastLocation.getLongitude());
@@ -221,15 +245,38 @@ public class MainActivity extends Activity {
 	}
 
 	// ----------------------------------------------------------
+	// Network Functions
+	public boolean isConnected() {
+		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Activity.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+		if (networkInfo != null && networkInfo.isConnected())
+		{
+			networkConnected = true;
+			return true;
+		}
+		else
+		{
+			networkConnected = false;
+			return false;
+		}
+	}
+	
+	public void httpPOSTResult(String result)
+	{
+		Toast.makeText(self, "Post Successful", Toast.LENGTH_LONG).show();
+		//txtview_httpReult.setText(result);
+		//clearGPSData();
+		
+	}
+	
+	// ----------------------------------------------------------
 	// Data Functions
 	public void turnOnGPSDataCapture() {
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0,
-				0, locationListener);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 		capturingGPSData = true;
 
 		updateGPSViewStateStyle();
-		Toast.makeText(self, "Storing GPS Location Data on Local Device.",
-				Toast.LENGTH_LONG).show();
+		Toast.makeText(self, "Storing GPS Location Data on Local Device.", Toast.LENGTH_LONG).show();
 	}
 
 	public void turnOffGPSDataCapture() {
@@ -237,10 +284,36 @@ public class MainActivity extends Activity {
 		locationManager.removeUpdates(locationListener);
 
 		updateGPSViewStateStyle();
-		Toast.makeText(self, "No longer storing GPS Location Data.",
-				Toast.LENGTH_LONG).show();
+		Toast.makeText(self, "No longer storing GPS Location Data.", Toast.LENGTH_LONG).show();
 	}
 
+	public void packDataGPSData() {
+		Toast.makeText(self, "Packing Data", Toast.LENGTH_SHORT).show();
+		ArrayList<DataPointGPS> gpspoints = db.getAllGPSDataPoints(); 
+		
+		
+		JSONObject jsonGPSData = new JSONObject();
+		JSONArray jsonGPSPoints = new JSONArray(gpspoints);
+		
+        try {
+			jsonGPSData.accumulate("phonenumber", thisPhoneNumber);
+			jsonGPSData.accumulate("data", jsonGPSPoints);
+		
+        
+        
+        } catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        jsonGPSData.toString();
+        
+        HttpAsyncTask httptask = new HttpAsyncTask(this);
+        httptask.setJsonObjectToPost(jsonGPSData);
+        txtview_httpReult.setText( jsonGPSData.toString());
+        httptask.execute(dataPostUrl);
+	}
+	
+	
 	public void clearGPSData() {
 		db.clearGPSDataPoints();
 		numberOfSavedGPSDataPoints = db.getGPSDataPointCount();
@@ -259,6 +332,51 @@ public class MainActivity extends Activity {
 		} else {
 			turnOffGPSDataCapture();
 		}
+	}
+
+	public void onClickedSendGPSDataPoints(View view) {
+		
+		if (isConnected())
+		{
+			numberOfSavedGPSDataPoints = db.getGPSDataPointCount();
+			
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setMessage("Sending " + numberOfSavedGPSDataPoints + " GPS Data Points. Would you like to continue?");
+			builder.setTitle("GPS Data");
+
+			builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					packDataGPSData();
+				}
+			});
+			builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					// User cancelled the dialog
+				}
+			});
+
+			AlertDialog dialog = builder.create();
+			dialog.show();
+			
+		}
+		else
+		{
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setMessage("You are not connected to a network. Please enable your Wireless connection or Data Service and try again.");
+			builder.setTitle("GPS Data");
+
+			builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+				}
+			});
+			
+			AlertDialog dialog = builder.create();
+			dialog.show();
+			
+		}
+		
+		
+
 	}
 
 	public void onClickedClearGPSDataPoints(View view) {
@@ -293,20 +411,16 @@ public class MainActivity extends Activity {
 		if (capturingGPSData) {
 			if (gpsProviderEnabled) {
 
-				txtview_CurrentLocationTitle
-						.setText("GPS Location - Pending ...");
-				txtview_CurrentLocationTitle.setTextColor(Color.argb(255, 0, 0,
-						0));
+				txtview_CurrentLocationTitle.setText("GPS Location - Pending ...");
+				txtview_CurrentLocationTitle.setTextColor(Color.argb(255, 0, 0, 0));
 				setTextViewStyle_Active(txtview_CurrentLon);
 				setTextViewStyle_Active(txtview_CurrentLat);
 				setTextViewStyle_Active(txtview_CurrentAlt);
 				setTextViewStyle_Active(txtview_CurrentTime);
 				gpstable.setBackgroundColor(Color.argb(255, 157, 255, 208));
 			} else {
-				txtview_CurrentLocationTitle
-						.setText("GPS Location - GPS Disabled!");
-				txtview_CurrentLocationTitle.setTextColor(Color.argb(255, 150,
-						0, 0));
+				txtview_CurrentLocationTitle.setText("GPS Location - GPS Disabled!");
+				txtview_CurrentLocationTitle.setTextColor(Color.argb(255, 150, 0, 0));
 				setTextViewStyle_ActiveError(txtview_CurrentLon);
 				setTextViewStyle_ActiveError(txtview_CurrentLat);
 				setTextViewStyle_ActiveError(txtview_CurrentAlt);
@@ -347,12 +461,9 @@ public class MainActivity extends Activity {
 		if (lastLocation != null) {
 			// durationSeconds = getDurationSeconds(mLastLocation.getTime());
 
-			txtview_CurrentLon.setText(Double.toString(lastLocation
-					.getLongitude()) + "°");
-			txtview_CurrentLat.setText(Double.toString(lastLocation
-					.getLatitude()) + "°");
-			txtview_CurrentAlt.setText(Double.toString(lastLocation
-					.getAltitude()) + "m");
+			txtview_CurrentLon.setText(Double.toString(lastLocation.getLongitude()) + "°");
+			txtview_CurrentLat.setText(Double.toString(lastLocation.getLatitude()) + "°");
+			txtview_CurrentAlt.setText(Double.toString(lastLocation.getAltitude()) + "m");
 			time.set(lastLocation.getTime());
 			txtview_CurrentTime.setText(time.format("%H:%M:%S %m/%d/%Y"));
 			txtview_PointsSaved.setText("" + numberOfSavedGPSDataPoints);

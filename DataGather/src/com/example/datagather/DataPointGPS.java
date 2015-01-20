@@ -1,5 +1,7 @@
 package com.example.datagather;
 
+import org.json.JSONObject;
+
 public class DataPointGPS {
 
 	//private vars
@@ -31,6 +33,14 @@ public class DataPointGPS {
 	}
 	public void setTime(long time) {
 		this.time = time;
+	}
+	
+	
+	@Override
+	public String toString() {
+		
+		
+		return "{\"longitude\":\"" + longitude + "\",\"latitude\":\"" + latitude + "\",\"altitude\":\"" + altitude + "\",\"time\":\"" + time + "\"}";
 	}
 	
 	

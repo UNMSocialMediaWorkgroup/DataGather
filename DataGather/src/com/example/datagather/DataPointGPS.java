@@ -36,6 +36,7 @@ public class DataPointGPS {
 		this.time = time;
 	}
 	
+	/*
 	public JSONObject getJsonObject() throws JSONException
 	{
 		JSONObject jsonGPSpoint = new JSONObject();
@@ -46,10 +47,11 @@ public class DataPointGPS {
 		return jsonGPSpoint;
 		
 	}
+	*/
 	
 	@Override
 	public String toString() {
-		return "{\"lon\":\"" + longitude + "\",\"lat\":\"" + latitude + "\",\"alt\":\"" + altitude + "\",\"time\":\"" + time + "\"}";
+		return "{\"lon\":" + longitude + ",\"lat\":" + latitude + ",\"alt\":" + altitude + ",\"time\":" + time + "}";
 	}
 	
 	

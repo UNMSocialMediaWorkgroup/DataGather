@@ -20,7 +20,7 @@ import android.widget.Toast;
 class HttpAsyncTask extends AsyncTask<String, Void, String> {
     
 	private Context context; 
-	JSONObject jsonObjectToPost;
+	String jsonObjectToPost = "";
 	
 	public HttpAsyncTask(Context _context) {
 			super();
@@ -28,8 +28,13 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
 		}
 	
 	public void setJsonObjectToPost(JSONObject jsonObject){
-		jsonObjectToPost = jsonObject;
+		jsonObjectToPost = jsonObject.toString();
 	}
+	
+	public void setJsonObjectToPost(String _jsonObjectString){
+		jsonObjectToPost = _jsonObjectString;
+	}
+	
 	
 	@Override
     protected String doInBackground(String... urls) {
@@ -42,7 +47,7 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
         return POST_JSON(urls[0],jsonObjectToPost);//person);
     }
     
-    public String POST_JSON(String url, JSONObject jsonObject){
+    public String POST_JSON(String url, String json){
         InputStream inputStream = null;
         String result = "";
         try {
@@ -53,7 +58,7 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
             // 2. make POST request to the given URL
             HttpPost httpPost = new HttpPost(url);
  
-            String json = "";
+            //String json = "";
  
             // 3. build jsonObject
             //JSONObject jsonObject = new JSONObject();
@@ -62,7 +67,7 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
             //jsonObject.accumulate("twitter", person.getTwitter());
  
             // 4. convert JSONObject to JSON to String
-            json = jsonObject.toString();
+            //json = jsonObject.toString();
  
             // ** Alternative way to convert Person object to JSON string usin Jackson Lib 
             // ObjectMapper mapper = new ObjectMapper();

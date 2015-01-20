@@ -263,10 +263,23 @@ public class MainActivity extends Activity {
 	
 	public void httpPOSTResult(String result)
 	{
-		Toast.makeText(self, "Post Successful", Toast.LENGTH_LONG).show();
-		//txtview_httpReult.setText(result);
-		//clearGPSData();
-		
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage("Post Successful!\n"+result.toString()+"\nDo you want to delete all locally saved GPS Data?");
+		builder.setTitle("GPS Data");
+
+		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				clearGPSData();
+			}
+		});
+		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				// User cancelled the dialog
+			}
+		});
+
+		AlertDialog dialog = builder.create();
+		dialog.show();
 	}
 	
 	// ----------------------------------------------------------
@@ -291,31 +304,24 @@ public class MainActivity extends Activity {
 
 		ArrayList<DataPointGPS> gpspoints = db.getAllGPSDataPoints(); 
 				
-		JSONObject jsonGPSData = new JSONObject();
+		//JSONObject jsonGPSData = new JSONObject();
 		//JSONArray jsonGPSPoints = new JSONArray(gpspoints);
-		ArrayList<JSONObject> jsonGPSPoints = new ArrayList<JSONObject>();
+		//ArrayList<JSONObject> jsonGPSPoints = new ArrayList<JSONObject>();
 		
-        try {
-			jsonGPSData.accumulate("phonenumber", thisPhoneNumber);
-			
-			for (DataPointGPS gpspoint : gpspoints)
-			{
-				jsonGPSPoints.add(gpspoint.getJsonObject());
-			}
-
-			jsonGPSData.accumulate("data", jsonGPSPoints);
-
-        } catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		//Made my own JSON converter because the java one was double escaping all the quotes. :(
+		String jsonGPSData = "{";
+		jsonGPSData+="\"phonenumber\":\""+thisPhoneNumber+"\",";
+		jsonGPSData+="\"data\":[";
+		
+		for (DataPointGPS  gpspoint : gpspoints)
+		{
+			jsonGPSData+=gpspoint.toString()+",";
 		}
-        
+		jsonGPSData+="}";
+       
         HttpAsyncTask httptask = new HttpAsyncTask(this);
         httptask.setJsonObjectToPost(jsonGPSData);
-        
-        txtview_httpReult.setText( ">>"+jsonGPSData.toString());
-
-        Toast.makeText(self, "WTF NOT EXICUTING", Toast.LENGTH_LONG).show();
+        //txtview_httpReult.setText( ">>"+jsonGPSData.toString());
         httptask.execute(dataPostUrl);
 	}
 	

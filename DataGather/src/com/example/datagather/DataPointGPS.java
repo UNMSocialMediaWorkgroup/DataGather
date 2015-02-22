@@ -11,6 +11,14 @@ public class DataPointGPS {
 	double  altitude  = 0.0f;
 	long     time     = 0;
 	
+	String owner = "";
+	
+	public String getOwner() {
+		return owner;
+	}
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
 	public double getLongitude() {
 		return longitude;
 	}
@@ -51,7 +59,7 @@ public class DataPointGPS {
 	
 	@Override
 	public String toString() {
-		return "{\"lon\":" + longitude + ",\"lat\":" + latitude + ",\"alt\":" + altitude + ",\"time\":" + time + "}";
+		return "{\\\"lon\\\":" + longitude + ",\\\"lat\\\":" + latitude + ",\\\"alt\\\":" + altitude + ",\\\"time\\\":" + time + ",\\\"owner\\\": \\\"+"+owner+"\\\" }";
 	}
 	
 	

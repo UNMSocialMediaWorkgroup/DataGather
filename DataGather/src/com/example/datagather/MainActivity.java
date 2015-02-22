@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
 	private boolean gpsProviderEnabled = true;
 	private boolean networkConnected   = false;
 	private boolean capturingGPSData = false;
-	private  String dataPostUrl = "http://174.56.72.130:3000/submit";
+	private  String dataPostUrl = "http://104.236.211.212:3000/submitdatapoint";
 	private  String thisPhoneNumber = "";
 
 	DatabaseHandler db;
@@ -264,7 +264,7 @@ public class MainActivity extends Activity {
 	public void httpPOSTResult(String result)
 	{
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("Post Successful!\n"+result.toString()+"\nDo you want to delete all locally saved GPS Data?");
+		builder.setMessage(result.toString()+"\n\nDo you want to delete all locally saved GPS Data?");
 		builder.setTitle("GPS Data");
 
 		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -309,19 +309,40 @@ public class MainActivity extends Activity {
 		//ArrayList<JSONObject> jsonGPSPoints = new ArrayList<JSONObject>();
 		
 		//Made my own JSON converter because the java one was double escaping all the quotes. :(
-		String jsonGPSData = "{";
-		jsonGPSData+="\"phonenumber\":\""+thisPhoneNumber+"\",";
-		jsonGPSData+="\"data\":[";
+		String jsonGPSData = "[";
+		//jsonGPSData+="\"phonenumber\":\""+thisPhoneNumber+"\",";
+		//jsonGPSData+="\"data\":[";
+    	JSONObject GPSData = new JSONObject();
+    	JSONArray GPSPointsJsonArray =  new JSONArray();
+        try {
+
+			for (DataPointGPS  gpspoint : gpspoints)
+			{
+				gpspoint.setOwner(thisPhoneNumber);
+				
+				JSONObject GPSPointJsonObject =  new JSONObject();
+				//{"lon":10.0011001, "lat": 11.00111001, "alt" : 4.32220002, "time" : 1424635760000, "owner" : "+15054591694" }
+				GPSPointJsonObject.put("lon" , gpspoint.getLongitude());
+				GPSPointJsonObject.put("lat" , gpspoint.getLatitude());
+				GPSPointJsonObject.put("alt" , gpspoint.getAltitude());
+				GPSPointJsonObject.put("time", gpspoint.getTime());
+				GPSPointJsonObject.put("owner", gpspoint.getOwner());
+				
+				GPSPointsJsonArray.put( GPSPointJsonObject );
+			}
+			
+			GPSData.put("data", GPSPointsJsonArray);
 		
-		for (DataPointGPS  gpspoint : gpspoints)
-		{
-			jsonGPSData+=gpspoint.toString()+",";
+        } catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		jsonGPSData+="}";
+	
        
         HttpAsyncTask httptask = new HttpAsyncTask(this);
-        httptask.setJsonObjectToPost(jsonGPSData);
-        //txtview_httpReult.setText( ">>"+jsonGPSData.toString());
+        httptask.setJsonObjectToPost(GPSData);
+        //httptask.setJsonObjectToPost("{ \"hi\":12345 }");
+        //txtview_httpReult.setText( ">>"+GPSData.toString());
         httptask.execute(dataPostUrl);
 	}
 	

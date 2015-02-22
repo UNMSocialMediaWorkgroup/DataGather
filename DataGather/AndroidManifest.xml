@@ -28,9 +28,9 @@
             </intent-filter>
         </activity>
         <activity
-      android:name="com.example.datagather.GPSDataViewActivity"
-      android:label="@string/app_name" >
-    </activity>
+      		android:name="com.example.datagather.GPSDataViewActivity"
+      		android:label="@string/app_name" >
+   		</activity>
         
         
     </application>

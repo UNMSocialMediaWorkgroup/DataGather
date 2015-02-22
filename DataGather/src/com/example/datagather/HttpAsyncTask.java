@@ -20,7 +20,7 @@ import android.widget.Toast;
 class HttpAsyncTask extends AsyncTask<String, Void, String> {
     
 	private Context context; 
-	String jsonObjectToPost = "";
+	JSONObject jsonObjectToPost;
 	
 	public HttpAsyncTask(Context _context) {
 			super();
@@ -28,13 +28,14 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
 		}
 	
 	public void setJsonObjectToPost(JSONObject jsonObject){
-		jsonObjectToPost = jsonObject.toString();
+		jsonObjectToPost = jsonObject;
 	}
 	
+	/*
 	public void setJsonObjectToPost(String _jsonObjectString){
 		jsonObjectToPost = _jsonObjectString;
 	}
-	
+	*/
 	
 	@Override
     protected String doInBackground(String... urls) {
@@ -44,10 +45,10 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
        // person.setCountry(etCountry.getText().toString());
        // person.setTwitter(etTwitter.getText().toString());
 
-        return POST_JSON(urls[0],jsonObjectToPost);//person);
+        return POST_JSON(urls[0]);//person);
     }
     
-    public String POST_JSON(String url, String json){
+    public String POST_JSON(String url){
         InputStream inputStream = null;
         String result = "";
         try {
@@ -58,16 +59,16 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
             // 2. make POST request to the given URL
             HttpPost httpPost = new HttpPost(url);
  
-            //String json = "";
- 
+            String json = "";
+            
             // 3. build jsonObject
             //JSONObject jsonObject = new JSONObject();
-            //jsonObject.accumulate("name", person.getName());
-            //jsonObject.accumulate("country", person.getCountry());
-            //jsonObject.accumulate("twitter", person.getTwitter());
+            //jsonObject.accumulate("name", "Bob");
+            //jsonObject.accumulate("country", "space");
+            //jsonObject.accumulate("twitter", "spacetwitter");
  
             // 4. convert JSONObject to JSON to String
-            //json = jsonObject.toString();
+            json = jsonObjectToPost.toString();
  
             // ** Alternative way to convert Person object to JSON string usin Jackson Lib 
             // ObjectMapper mapper = new ObjectMapper();

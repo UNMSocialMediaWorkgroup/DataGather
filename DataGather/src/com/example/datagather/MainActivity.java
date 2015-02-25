@@ -24,6 +24,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.GpsStatus.Listener;
 import android.location.Location;
 import android.location.LocationListener;
@@ -45,37 +49,54 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SensorEventListener{
 
 	private Activity self = this;
 	private static final String TAG = ">>MAIN";
-	private static final String DATA_PREFS_NAME = "CurrentData";
-
-	private LocationManager locationManager;
-	private LocationListener locationListener;
-
 	
 
 	private boolean activityVisible;
-	private boolean gpsProviderEnabled = true;
+	
+	//-----Network
 	private boolean networkConnected   = false;
-	private boolean capturingGPSData = false;
 	private  String dataPostUrl = "http://104.236.211.212:3000/submitdatapoint";
 	private  String thisPhoneNumber = "";
 
+	//-----Prefs
+	private static final String DATA_PREFS_NAME = "CurrentData";
+	
+	//-----DB
 	DatabaseHandler db;
 	private int numberOfSavedGPSDataPoints = 0;
-
+	
+	//-----GPS
+	private LocationManager locationManager;
+	private LocationListener locationListener;
+	private boolean gpsProviderEnabled = true;
+	private boolean capturingGPSData = false;
 	private Location lastLocation;
 	private Time time = new Time();
 	private long timeOfLastSave_MiliSec = 0;
 	private long saveFrequency_MiliSec = 5000;
 	private int maxGPSDataPoints = 50000;
 	
+	//-----Motion
+	private SensorManager sensorManager;
+	
+	private Sensor accelSensor;
+	private float[] gravity = {0.0f,0.0f,0.0f};
+	private float[] linear_acceleration = {0.0f,0.0f,0.0f};
+	
+	private Sensor rotationSensor;
+	private float[] rotation = {0.0f,0.0f,0.0f};
+	
+
+	//-----UI
 	private ToggleButton tbtn_gps;
-	private TableLayout gpstable;
+	private TableLayout gpstable, motiontable;
 	private TextView txtview_CurrentLocationTitle;
 	private TextView txtview_CurrentLon, txtview_CurrentLat, txtview_CurrentAlt, txtview_CurrentTime, txtview_PointsSaved;
+	private TextView txtview_accelX, txtview_accelY, txtview_accelZ, txtview_rotationX,txtview_rotationY,txtview_rotationZ;
 	private TextView txtview_httpReult;
 
 	void onLocationReceived(Location loc) {
@@ -122,10 +143,56 @@ public class MainActivity extends Activity {
 	}
 
 	@Override
+	public void onSensorChanged(SensorEvent event){
+        Sensor sensor = event.sensor;
+        if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+        	Log.d(TAG, "Got Accel x:"+event.values[0]+" y:"+event.values[1]+" z:"+event.values[2]);
+    		// In this example, alpha is calculated as t / (t + dT),
+    		// where t is the low-pass filter's time-constant and
+    		// dT is the event delivery rate.
+    		
+    		final float alpha = 0.8f;
+    		
+    		// Isolate the force of gravity with the low-pass filter.
+    		gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];
+    		gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
+    		gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
+    		
+    		// Remove the gravity contribution with the high-pass filter.
+    		linear_acceleration[0] = event.values[0] - gravity[0];
+    		linear_acceleration[1] = event.values[1] - gravity[1];
+    		linear_acceleration[2] = event.values[2] - gravity[2];
+    		  
+    		txtview_accelX.setText(Float.toString(linear_acceleration[0]) + "m/s\u00B2");
+    		txtview_accelY.setText(Float.toString(linear_acceleration[1]) + "m/s\u00B2");
+    		txtview_accelZ.setText(Float.toString(linear_acceleration[2]) + "m/s\u00B2");
+        }
+        else if (sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
+        
+        	Log.d(TAG, "Got Rotation x:"+event.values[0]+" y:"+event.values[1]+" z:"+event.values[2]);
+
+        	rotation[0] = event.values[0];
+        	rotation[1] = event.values[1];
+        	rotation[2] = event.values[2];
+        	
+        	txtview_rotationX.setText(Float.toString(rotation[0]));
+    		txtview_rotationY.setText(Float.toString(rotation[1]));
+    		txtview_rotationZ.setText(Float.toString(rotation[2]));
+        	
+        	
+        }
+		
+		
+		
+		  
+	}
+	
+	
+	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-
+		Log.d(TAG, "Created");
 		// ----------------------------------------------------------
 		// Get Telephone Number for ID. 
 		TelephonyManager tMgr = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
@@ -169,6 +236,16 @@ public class MainActivity extends Activity {
 			}
 		};
 
+		
+		// ----------------------------------------------------------
+		// Set up motion sensors. 
+		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+		
+		
+		
+		
 		// ----------------------------------------------------------
 		// new database
 		db = new DatabaseHandler(this);
@@ -186,12 +263,21 @@ public class MainActivity extends Activity {
 		// set up UI
 		tbtn_gps = (ToggleButton) findViewById(R.id.tb_gatherGPSData);
 		gpstable = (TableLayout) findViewById(R.id.table_GPSData);
+		motiontable = (TableLayout) findViewById(R.id.table_MotionData);
 		txtview_CurrentLocationTitle = (TextView) findViewById(R.id.t_gpsTitleTextView);
 		txtview_CurrentLon = (TextView) findViewById(R.id.t_longitudeTextView);
 		txtview_CurrentLat = (TextView) findViewById(R.id.t_latitudeTextView);
 		txtview_CurrentAlt = (TextView) findViewById(R.id.t_altitudeTextView);
 		txtview_CurrentTime = (TextView) findViewById(R.id.t_lastUpdatedTextView);
 		txtview_PointsSaved = (TextView) findViewById(R.id.t_pointsSavedTextView);
+		
+		txtview_accelX = (TextView) findViewById(R.id.t_accelX);
+		txtview_accelY = (TextView) findViewById(R.id.t_accelY);
+		txtview_accelZ = (TextView) findViewById(R.id.t_accelZ);
+		txtview_rotationX = (TextView) findViewById(R.id.t_rotationX);
+		txtview_rotationY = (TextView) findViewById(R.id.t_rotationY);
+		txtview_rotationZ = (TextView) findViewById(R.id.t_rotationZ);
+		
 		txtview_httpReult   = (TextView) findViewById(R.id.t_httpResultTextView);
 
 		// ----------------------------------------------------------
@@ -218,32 +304,48 @@ public class MainActivity extends Activity {
 		Log.d(TAG, "Started");
 		activityVisible = true;
 	}
-
+	
+	@Override
+	protected void onResume() {
+	    super.onResume();
+	    Log.d(TAG, "Resumed");
+	   // sensorManager.registerListener(this, mLight, SensorManager.SENSOR_DELAY_NORMAL);
+	  }
+	
+	@Override
+	protected void onPause() {
+	    super.onPause();
+	    Log.d(TAG, "Paused");
+	   // sensorManager.unregisterListener(this);
+	  }
+	 
 	@Override
 	public void onStop() {
-		Log.d(TAG, "Stopped");
-		activityVisible = false;
+			Log.d(TAG, "Stopped");
+			activityVisible = false;
 
-		// ---Save View Info
-		if (lastLocation != null) {
-			// save the Last location into Shared Preferences so they can be
-			// displayed the next time the app starts
-			SharedPreferences mostRecentData = getSharedPreferences(DATA_PREFS_NAME, 0);
-			SharedPreferences.Editor editor = mostRecentData.edit();
+			// ---Save View Info
+			if (lastLocation != null) {
+				// save the Last location into Shared Preferences so they can be
+				// displayed the next time the app starts
+				SharedPreferences mostRecentData = getSharedPreferences(DATA_PREFS_NAME, 0);
+				SharedPreferences.Editor editor = mostRecentData.edit();
 
-			editor.putFloat("longitude", (float) lastLocation.getLongitude());
-			editor.putFloat("latitude", (float) lastLocation.getLatitude());
-			editor.putFloat("altitude", (float) lastLocation.getAltitude());
-			time.set(lastLocation.getTime());
-			editor.putString("time", time.format("%H:%M:%S %m/%d/%Y"));
+				editor.putFloat("longitude", (float) lastLocation.getLongitude());
+				editor.putFloat("latitude", (float) lastLocation.getLatitude());
+				editor.putFloat("altitude", (float) lastLocation.getAltitude());
+				time.set(lastLocation.getTime());
+				editor.putString("time", time.format("%H:%M:%S %m/%d/%Y"));
 
-			// Commit the edits!
-			editor.commit();
+				// Commit the edits!
+				editor.commit();
+			}
+
+			super.onStop();
 		}
 
-		super.onStop();
-	}
 
+	
 	// ----------------------------------------------------------
 	// Network Functions
 	public boolean isConnected() {
@@ -300,18 +402,36 @@ public class MainActivity extends Activity {
 		Toast.makeText(self, "No longer storing GPS Location Data.", Toast.LENGTH_LONG).show();
 	}
 
+	public void turnOnMotionDataCapture() {
+		sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_NORMAL);
+		sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_NORMAL);
+		setTextViewStyle_Active(txtview_accelX);
+		setTextViewStyle_Active(txtview_accelY);
+		setTextViewStyle_Active(txtview_accelZ);	
+		setTextViewStyle_Active(txtview_rotationX);
+		setTextViewStyle_Active(txtview_rotationY);
+		setTextViewStyle_Active(txtview_rotationZ);	
+		motiontable.setBackgroundColor(Color.argb(255, 157, 255, 208));
+		Toast.makeText(self, "Storing Motion Data on Local Device.", Toast.LENGTH_LONG).show();
+	}
+
+	public void turnOffMotionDataCapture() {
+		sensorManager.unregisterListener(this,accelSensor);
+		sensorManager.unregisterListener(this, rotationSensor);
+		setTextViewStyle_Inactive(txtview_accelX);
+		setTextViewStyle_Inactive(txtview_accelY);
+		setTextViewStyle_Inactive(txtview_accelZ);
+		setTextViewStyle_Inactive(txtview_rotationX);
+		setTextViewStyle_Inactive(txtview_rotationY);
+		setTextViewStyle_Inactive(txtview_rotationZ);
+		motiontable.setBackgroundColor(Color.argb(255, 214, 214, 214));
+		Toast.makeText(self, "No longer Motion Data.", Toast.LENGTH_LONG).show();
+	}
+	
 	public void packDataGPSData() {
 
 		ArrayList<DataPointGPS> gpspoints = db.getAllGPSDataPoints(); 
-				
-		//JSONObject jsonGPSData = new JSONObject();
-		//JSONArray jsonGPSPoints = new JSONArray(gpspoints);
-		//ArrayList<JSONObject> jsonGPSPoints = new ArrayList<JSONObject>();
 		
-		//Made my own JSON converter because the java one was double escaping all the quotes. :(
-		String jsonGPSData = "[";
-		//jsonGPSData+="\"phonenumber\":\""+thisPhoneNumber+"\",";
-		//jsonGPSData+="\"data\":[";
     	JSONObject GPSData = new JSONObject();
     	JSONArray GPSPointsJsonArray =  new JSONArray();
         try {
@@ -337,15 +457,12 @@ public class MainActivity extends Activity {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	
-       
+        
         HttpAsyncTask httptask = new HttpAsyncTask(this);
         httptask.setJsonObjectToPost(GPSData);
-        //httptask.setJsonObjectToPost("{ \"hi\":12345 }");
         //txtview_httpReult.setText( ">>"+GPSData.toString());
         httptask.execute(dataPostUrl);
 	}
-	
 	
 	public void clearGPSData() {
 		db.clearGPSDataPoints();
@@ -367,6 +484,14 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	public void onToggleClicked_gatherMotionData(View view) {
+		if (((ToggleButton) view).isChecked()) {
+			turnOnMotionDataCapture();
+		} else {
+			turnOffMotionDataCapture();
+		}
+	}
+	
 	public void onClickedSendGPSDataPoints(View view) {
 		
 		if (isConnected())
@@ -528,6 +653,12 @@ public class MainActivity extends Activity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

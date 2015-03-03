@@ -1,15 +1,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
-     
-    <TextView android:id="@+id/t_gpsTitleTextView"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/t_gpsTitleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="left"
         android:paddingRight="5sp"
         android:text="GPS Location - Most Recent"
-       android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" >
@@ -19,8 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onToggleClicked_gatherGPSData"
-            />
+            android:onClick="onToggleClicked_gatherGPSData" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -30,101 +31,77 @@
             android:paddingRight="5sp"
             android:text="Capture GPS Data" />
     </LinearLayout>
-    
-    
+
     <TableLayout
-    android:id="@+id/table_GPSData"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content">
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="Latitude"
-            />
-        <TextView android:id="@+id/t_latitudeTextView"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow>
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="Longitude"
-            />
-        <TextView android:id="@+id/t_longitudeTextView"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow> 
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="Altitude"
-            />
-        <TextView android:id="@+id/t_altitudeTextView"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow>
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="Last Updated"
-            />
-        <TextView android:id="@+id/t_lastUpdatedTextView"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow>
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="Points Saved"
-            />
-        <TextView android:id="@+id/t_pointsSavedTextView"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow>
-</TableLayout>
+        android:id="@+id/table_GPSData"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
 
-    
+        <TableRow>
 
-   
-	
-    <TextView android:id="@+id/t_motionTitleTextView"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="Latitude" />
+
+            <TextView
+                android:id="@+id/t_latitudeTextView"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="Longitude" />
+
+            <TextView
+                android:id="@+id/t_longitudeTextView"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="Altitude" />
+
+            <TextView
+                android:id="@+id/t_altitudeTextView"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+    </TableLayout>
+
+    <TextView
+        android:id="@+id/t_motionTitleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="left"
         android:paddingRight="5sp"
         android:text="Motion"
-       android:textAppearance="?android:attr/textAppearanceMedium" />
-    
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" >
 
         <ToggleButton
-            android:id="@+id/tb_gatherMotionData"
+            android:id="@+id/tb_gatherMotionDataX"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onToggleClicked_gatherMotionData"/>
+            android:onClick="onToggleClicked_gatherMotionData" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -134,92 +111,140 @@
             android:paddingRight="5sp"
             android:text="Capture Motion Data" />
     </LinearLayout>
-    
+
     <TableLayout
-    android:id="@+id/table_MotionData"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content">
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="accel X"
-            />
-        <TextView android:id="@+id/t_accelX"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow>
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="accel Y"
-            />
-        <TextView android:id="@+id/t_accelY"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow> 
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="accel Z"
-            />
-        <TextView android:id="@+id/t_accelZ"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow>
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="rotation X"
-            />
-        <TextView android:id="@+id/t_rotationX"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow>
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="rotation Y"
-            />
-        <TextView android:id="@+id/t_rotationY"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow> 
-    <TableRow>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:paddingRight="5sp"
-            android:text="rotation Z"
-            />
-        <TextView android:id="@+id/t_rotationZ"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
-    </TableRow>
+        android:id="@+id/table_MotionData"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="accel X" />
+
+            <TextView
+                android:id="@+id/t_accelX"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="accel Y" />
+
+            <TextView
+                android:id="@+id/t_accelY"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="accel Z" />
+
+            <TextView
+                android:id="@+id/t_accelZ"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="rotation X" />
+
+            <TextView
+                android:id="@+id/t_rotationX"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="rotation Y" />
+
+            <TextView
+                android:id="@+id/t_rotationY"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="rotation Z" />
+
+            <TextView
+                android:id="@+id/t_rotationZ"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
     </TableLayout>
-    
-     <RelativeLayout
+
+    <TableLayout
+        android:id="@+id/table_MetaData"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="Last Updated" />
+
+            <TextView
+                android:id="@+id/t_lastUpdatedTextView"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="Points Saved" />
+
+            <TextView
+                android:id="@+id/t_pointsSavedTextView"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+    </TableLayout>
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
@@ -230,7 +255,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@+id/btn_send"
-            android:onClick="onClickedViewGPSDataPoints"
+            android:onClick="onClickedViewDataPoints"
             android:text="View" />
 
         <Button
@@ -240,7 +265,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@+id/btn_view"
-            android:onClick="onClickedClearGPSDataPoints"
+            android:onClick="onClickedClearDataPoints"
             android:text="Delete" />
 
         <Button
@@ -251,14 +276,10 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:layout_marginLeft="75dp"
-            android:onClick="onClickedSendGPSDataPoints"
+            android:onClick="onClickedSendDataPoints"
             android:text="Send" />
-
-       
-
     </RelativeLayout>
-    
-    
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
@@ -269,14 +290,6 @@
             android:layout_height="wrap_content"
             android:text=""
             android:textAppearance="?android:attr/textAppearanceSmall" />
-
     </LinearLayout>
 
- 
-
-
-
 </LinearLayout>
-
-
-

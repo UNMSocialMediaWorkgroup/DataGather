@@ -16,6 +16,7 @@ public class DataPoint {
 	float 	rotationx = 0.0f;
 	float 	rotationy = 0.0f;
 	float 	rotationz = 0.0f;
+	float 	brightness = 0.0f;
 	
 	boolean written = false;
 	
@@ -92,6 +93,12 @@ public class DataPoint {
 		this.rotationz = rotationz;
 	}
 	
+	public float getBrightness() {
+		return brightness;
+	}
+	public void setBrightness(float brightness) {
+		this.brightness = brightness;
+	}
 	public void clear()
 	{
 		longitude = 0.0f;
@@ -123,8 +130,12 @@ public class DataPoint {
 	
 	@Override
 	public String toString() {
-		return "[lon:" + longitude + ",lat:" + latitude + ",alt:" + altitude + ",time:" + time + ",owner:"+owner+"\n"+
-				"accel:"+accelx+","+accely+","+accelz+", rot:"+rotationz+","+rotationy+","+rotationz+"]";
+		return "[lon:" + longitude + ",lat:" + latitude + ",alt:" + altitude + "\n"+
+				"accel:"+accelx+","+accely+","+accelz+"\n "+ 
+				"rot:"+rotationz+","+rotationy+","+rotationz+"\n"+
+				"light:"+brightness+"\n"+
+				"time:" + time + ",owner:"+owner+"]";
+				
 	}
 	
 	

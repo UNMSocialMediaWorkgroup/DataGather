@@ -28,7 +28,7 @@ public class InsertDataPointTask extends TimerTask {
 		   //Toast.makeText(context, "TimerTick!", Toast.LENGTH_SHORT).show();
     	
     	if( context.currentDataPoint.isWritten() ){
-	    	if (context.numberOfSavedDataPoints <= context.maxDataPoints) {
+	    	if (context.numberOfSavedDataPoints < context.maxDataPoints) {
 	    		
 	    		dataHasSpace = true; //HACKY AS FUCK
 	    		
@@ -42,17 +42,14 @@ public class InsertDataPointTask extends TimerTask {
 			} else {
 				// TOO MUCH DATA!!!
 				// --Turn off capture
-				if ((context.isCapturingGPSData || context.isCapturingMotionData) && dataHasSpace) {
-					dataHasSpace =  false; 						   //BUT THIS DOES!! WTF
+				if (context.currentDataPoint.isWritten()  && dataHasSpace) {
+					dataHasSpace =  false; 						   
 					context.runOnUiThread(new Runnable() {
 					     @Override
 					     public void run() {
-							context.isCapturingGPSData    = false;//this doesn't work for some reason......
-							context.isCapturingMotionData = false;//this doesn't work for some reason......
-									 
-					    	context.turnOffGPSDataCapture();
-					    	context.turnOffMotionDataCapture();
-					    	context.updateUI_DataFull();
+							
+					    	context.turnOffAllDataCapture(); 
+					    	
 					    	
 
 	

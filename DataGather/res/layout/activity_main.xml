@@ -83,14 +83,7 @@
         </TableRow>
     </TableLayout>
 
-    <TextView
-        android:id="@+id/t_motionTitleTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="left"
-        android:paddingRight="5sp"
-        android:text="Motion"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -207,6 +200,56 @@
                 android:layout_height="wrap_content" />
         </TableRow>
     </TableLayout>
+    
+      <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <ToggleButton
+            android:id="@+id/tb_gatherLightData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onToggleClicked_gatherLightData" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="left"
+            android:paddingRight="5sp"
+            android:text="Capture Light Data" />
+    </LinearLayout>
+
+    <TableLayout
+        android:id="@+id/table_LightData"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="brightness" />
+
+            <TextView
+                android:id="@+id/t_light"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+	</TableLayout>
+	
+    <TextView
+        android:id="@+id/t_metaTitleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="left"
+        android:paddingRight="5sp"
+        android:text=""
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TableLayout
         android:id="@+id/table_MetaData"

@@ -69,7 +69,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	//-----DB
 	DatabaseHandler db;
 	public int numberOfSavedDataPoints = 0;
-	public int maxDataPoints = 50;
+	public int maxDataPoints = 50000;
 	
 	public DataPoint currentDataPoint = new DataPoint();
 	
@@ -102,13 +102,18 @@ public class MainActivity extends Activity implements SensorEventListener{
 	private Sensor rotationSensor;
 	private float[] rotation = {0.0f,0.0f,0.0f};
 	
+	//-----Motion
+	public boolean isCapturingLightData = false;
+	private Sensor lightSensor;
+	
 
 	//-----UI
-	private ToggleButton tbtn_gps, tbtn_motion;
-	private TableLayout gpstable, motiontable;
+	private ToggleButton tbtn_gps, tbtn_motion, tbtn_light;
+	private TableLayout gpstable, motiontable, lighttable;
 	private TextView txtview_CurrentLocationTitle;
 	private TextView txtview_CurrentLon, txtview_CurrentLat, txtview_CurrentAlt, txtview_CurrentTime, txtview_PointsSaved;
 	private TextView txtview_accelX, txtview_accelY, txtview_accelZ, txtview_rotationX,txtview_rotationY,txtview_rotationZ;
+	private TextView txtview_light;
 	private TextView txtview_httpReult;
 
 	void onLocationReceived(Location loc) {
@@ -166,23 +171,29 @@ public class MainActivity extends Activity implements SensorEventListener{
         	rotation[1] = event.values[1];
         	rotation[2] = event.values[2];
         	
+        	time.setToNow();
+    		currentDataPoint.setTime(time.toMillis(false));
 			currentDataPoint.setRotationx(rotation[0]);
 			currentDataPoint.setRotationy(rotation[1]);
 			currentDataPoint.setRotationz(rotation[2]);
 			currentDataPoint.setWritten();
         	
         
+        }else  if(event.sensor.getType() == Sensor.TYPE_LIGHT){
+        	//Log.d(TAG, "Got light: " + event.values[0]);
+        	
+        	time.setToNow();
+    		currentDataPoint.setTime(time.toMillis(false));
+			currentDataPoint.setBrightness(event.values[0]);
+			currentDataPoint.setWritten();
+        	
         }
         
        
         
         if (activityVisible) {
 			updateUI();
-		}
-		
-		
-		
-		  
+		}  
 	}
 	
 	
@@ -240,7 +251,11 @@ public class MainActivity extends Activity implements SensorEventListener{
 		sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-	
+		
+		// ----------------------------------------------------------
+		// Set up Light sensors.
+		lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+		
 		// ----------------------------------------------------------
 		// new database
 		db = new DatabaseHandler(this);
@@ -261,8 +276,11 @@ public class MainActivity extends Activity implements SensorEventListener{
 		// set up UI
 		tbtn_gps    = (ToggleButton) findViewById(R.id.tb_gatherGPSData);
 		tbtn_motion = (ToggleButton) findViewById(R.id.tb_gatherMotionDataX);
+		tbtn_light  = (ToggleButton) findViewById(R.id.tb_gatherLightData);
+		
 		gpstable    = (TableLayout) findViewById(R.id.table_GPSData);
 		motiontable = (TableLayout) findViewById(R.id.table_MotionData);
+		lighttable  = (TableLayout) findViewById(R.id.table_LightData);
 		txtview_CurrentLocationTitle = (TextView) findViewById(R.id.t_gpsTitleTextView);
 		txtview_CurrentLon = (TextView) findViewById(R.id.t_longitudeTextView);
 		txtview_CurrentLat = (TextView) findViewById(R.id.t_latitudeTextView);
@@ -276,6 +294,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 		txtview_rotationX = (TextView) findViewById(R.id.t_rotationX);
 		txtview_rotationY = (TextView) findViewById(R.id.t_rotationY);
 		txtview_rotationZ = (TextView) findViewById(R.id.t_rotationZ);
+		
+		txtview_light	= (TextView)findViewById(R.id.t_light);
 		
 		txtview_httpReult   = (TextView) findViewById(R.id.t_httpResultTextView);
 
@@ -386,6 +406,19 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	// ----------------------------------------------------------
 	// Data Functions
+	public void turnOffAllDataCapture(){
+		isCapturingGPSData    = false;
+		isCapturingMotionData = false;
+		isCapturingLightData  = false;
+				 
+    	turnOffGPSDataCapture();
+    	turnOffMotionDataCapture();
+    	turnOffLightDataCapture();
+    	updateUI_DataFull();
+
+	}
+	
+	
 	public void turnOnGPSDataCapture() {
 		if (numberOfSavedDataPoints < maxDataPoints) {   //There is room for more points. 
 			
@@ -446,6 +479,32 @@ public class MainActivity extends Activity implements SensorEventListener{
 		Toast.makeText(self, "No longer storing Motion Data.", Toast.LENGTH_LONG).show();
 	}
 	
+	public void turnOnLightDataCapture() {
+		if (numberOfSavedDataPoints < maxDataPoints) {   //There is room for more points. 
+			
+			isCapturingLightData = true;
+			sensorManager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+			setTextViewStyle_Active(txtview_light);
+			
+			lighttable.setBackgroundColor(Color.argb(255, 157, 255, 208));
+			Toast.makeText(self, "Storing Light Data on Local Device.", Toast.LENGTH_LONG).show();
+		}
+		else
+		{
+			
+			updateUI_DataFull();
+		}
+	}
+
+	public void turnOffLightDataCapture() {
+		isCapturingLightData = true;
+		sensorManager.unregisterListener(this,lightSensor);
+		setTextViewStyle_Inactive(txtview_light);
+		
+		lighttable.setBackgroundColor(Color.argb(255, 214, 214, 214));
+		Toast.makeText(self, "No longer storing Light Data.", Toast.LENGTH_LONG).show();
+	}
+	
 	public void packDataPoints() {
 
 		ArrayList<DataPoint> datapoints = db.getAllDataPoints(); 
@@ -476,6 +535,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 				pointJsonObject.put("rotx" , point.getRotationx());
 				pointJsonObject.put("roty" , point.getRotationy());
 				pointJsonObject.put("rotz" , point.getRotationz());
+				
+				pointJsonObject.put("light", point.getBrightness());
 				
 				pointsJsonArray.put( pointJsonObject );
 				
@@ -522,6 +583,16 @@ public class MainActivity extends Activity implements SensorEventListener{
 			turnOffMotionDataCapture();
 		}
 	}
+	
+	public void onToggleClicked_gatherLightData(View view) {
+		if (((ToggleButton) view).isChecked()) {
+			turnOnLightDataCapture();
+			
+		} else {
+			turnOffLightDataCapture();
+		}
+	}
+	
 	
 	public void onClickedSendDataPoints(View view) {
 		
@@ -597,8 +668,6 @@ public class MainActivity extends Activity implements SensorEventListener{
 
 	// ----------------------------------------------------------
 	// View Functions
-
-	
  	private void updateGPSViewStateStyle() {
 		if (isCapturingGPSData) {
 			if (gpsProviderEnabled) {
@@ -670,12 +739,15 @@ public class MainActivity extends Activity implements SensorEventListener{
 		txtview_rotationY.setText(Float.toString(rotation[1]));
 		txtview_rotationZ.setText(Float.toString(rotation[2]));
 		
+		txtview_light.setText(Float.toString(currentDataPoint.getBrightness()));
+		
 	}
 
 	public void updateUI_DataFull()
 	{
 		tbtn_gps.setChecked(false);
 		tbtn_motion.setChecked(false);
+		tbtn_light.setChecked(false);
 		txtview_CurrentLocationTitle.setText("GPS Location - DATA FULL!");
 		txtview_CurrentLocationTitle.setTextColor(Color.argb(255, 150, 0, 0));
 		

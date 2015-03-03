@@ -28,6 +28,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_ROTX  = "rotationX";
     private static final String KEY_ROTY  = "rotationY";
     private static final String KEY_ROTZ  = "rotationZ";
+    private static final String KEY_BRGHT = "Brightness";
 	
     private static final String CREATE_POINTS_TABLE = "CREATE TABLE " + TABLE_POINTS + "( "
 			+ KEY_LON   + " DOUBLE, "
@@ -39,8 +40,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			+ KEY_ACCELZ+ " FLOAT, "
 			+ KEY_ROTX  + " FLOAT, "
 			+ KEY_ROTY  + " FLOAT, "
-			+ KEY_ROTZ  + " FLOAT "
-			
+			+ KEY_ROTZ  + " FLOAT, "
+			+ KEY_BRGHT + " FLOAT "
 			+ ")";
     
     
@@ -80,6 +81,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		values.put(KEY_ROTX,   point.getRotationx());
 		values.put(KEY_ROTY,   point.getRotationy());
 		values.put(KEY_ROTZ,   point.getRotationz());
+		values.put(KEY_BRGHT,  point.getBrightness());
+		
         db.insert(TABLE_POINTS, null, values);
         db.close(); // Closing database connection
         Log.d(TAG, "Saved GPS Data Point");
@@ -98,17 +101,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
             	DataPoint point = new DataPoint();
-            	point.setLongitude(cursor.getDouble(0));
-            	point.setLatitude( cursor.getDouble(1));
-            	point.setAltitude( cursor.getDouble(2));
-            	point.setTime(     cursor.getLong(3));
-            	point.setAccelx(   cursor.getFloat(4));
-            	point.setAccely(   cursor.getFloat(5));
-            	point.setAccelz(   cursor.getFloat(6));
-            	point.setRotationx(cursor.getFloat(7));
-            	point.setRotationy(cursor.getFloat(8));
-            	point.setRotationz(cursor.getFloat(9));
-              
+            	point.setLongitude( cursor.getDouble(0));
+            	point.setLatitude(  cursor.getDouble(1));
+            	point.setAltitude(  cursor.getDouble(2));
+            	point.setTime(      cursor.getLong(3));
+            	point.setAccelx(    cursor.getFloat(4));
+            	point.setAccely(    cursor.getFloat(5));
+            	point.setAccelz(    cursor.getFloat(6));
+            	point.setRotationx( cursor.getFloat(7));
+            	point.setRotationy( cursor.getFloat(8));
+            	point.setRotationz( cursor.getFloat(9));
+            	point.setBrightness(cursor.getFloat(10));
                 // Adding gps point to list
             	pointList.add(point);
             } while (cursor.moveToNext());

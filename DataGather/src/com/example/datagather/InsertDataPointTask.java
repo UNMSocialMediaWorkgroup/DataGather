@@ -49,7 +49,7 @@ public class InsertDataPointTask extends TimerTask {
 					     public void run() {
 							
 					    	context.turnOffAllDataCapture(); 
-					    	
+					    	context.updateUI_DataFull();
 					    	
 
 	

@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Timer;
 
@@ -62,10 +66,11 @@ public class MainActivity extends Activity implements SensorEventListener{
 	private boolean networkConnected   = false;
 	private  String dataPostUrl = "http://104.236.211.212:3000/submitdatapoint";
 	private  String thisPhoneNumber = "";
-
-	//-----Prefs
-	private static final String DATA_PREFS_NAME = "CurrentData";
+	private  String ownerID = "";
 	
+	private static final String PREFS_NETWORK = "Network";
+	private static final String PREFS_NETWORK_OWNERID = "ownerID";
+
 	//-----DB
 	DatabaseHandler db;
 	public int numberOfSavedDataPoints = 0;
@@ -102,18 +107,23 @@ public class MainActivity extends Activity implements SensorEventListener{
 	private Sensor rotationSensor;
 	private float[] rotation = {0.0f,0.0f,0.0f};
 	
-	//-----Motion
+	//-----Light
 	public boolean isCapturingLightData = false;
 	private Sensor lightSensor;
 	
+	//-----Pressure
+	public boolean isCapturingPressureData = false;
+	private Sensor pressureSensor;
+	
 
 	//-----UI
-	private ToggleButton tbtn_gps, tbtn_motion, tbtn_light;
-	private TableLayout gpstable, motiontable, lighttable;
+	private ToggleButton tbtn_gps, tbtn_motion, tbtn_light,  tbtn_pressure;
+	private TableLayout gpstable, motiontable, lighttable, pressuretable;
 	private TextView txtview_CurrentLocationTitle;
 	private TextView txtview_CurrentLon, txtview_CurrentLat, txtview_CurrentAlt, txtview_CurrentTime, txtview_PointsSaved;
 	private TextView txtview_accelX, txtview_accelY, txtview_accelZ, txtview_rotationX,txtview_rotationY,txtview_rotationZ;
 	private TextView txtview_light;
+	private TextView txtview_pressure;
 	private TextView txtview_httpReult;
 
 	void onLocationReceived(Location loc) {
@@ -187,6 +197,13 @@ public class MainActivity extends Activity implements SensorEventListener{
 			currentDataPoint.setBrightness(event.values[0]);
 			currentDataPoint.setWritten();
         	
+        }else  if(event.sensor.getType() == Sensor.TYPE_PRESSURE){
+    	//Log.d(TAG, "Got Pressure: " + event.values[0]);    	
+	    	time.setToNow();
+			currentDataPoint.setTime(time.toMillis(false));
+			currentDataPoint.setPressure(event.values[0]);
+			currentDataPoint.setWritten();
+    	
         }
         
        
@@ -206,6 +223,23 @@ public class MainActivity extends Activity implements SensorEventListener{
 		// Get Telephone Number for ID. 
 		TelephonyManager tMgr = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
 		thisPhoneNumber = tMgr.getLine1Number();
+		
+		// ----------------------------------------------------------
+		// Get Owner Hash or generate a new one if it hasn't been created. 
+		SharedPreferences networkPrefs = getSharedPreferences(PREFS_NETWORK, 0);
+		ownerID = networkPrefs.getString(PREFS_NETWORK_OWNERID, "NO_ID");
+		//if no ID generate new one. 
+		if(ownerID.equals("NO_ID") || ownerID == null )
+		{
+			Log.d(TAG, "Generating new owner ID.");
+			ownerID = generateOwnerHash(thisPhoneNumber);
+			SharedPreferences.Editor editor = networkPrefs.edit();
+			editor.putString(PREFS_NETWORK_OWNERID,ownerID);
+			// Commit the edits!
+			editor.commit();
+		}
+		Log.d(TAG, "OWNER ID : "+ownerID);
+		
 		
 		
 		// ----------------------------------------------------------
@@ -257,6 +291,10 @@ public class MainActivity extends Activity implements SensorEventListener{
 		lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
 		
 		// ----------------------------------------------------------
+		// Set up Pressure sensor.
+		pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+		
+		// ----------------------------------------------------------
 		// new database
 		db = new DatabaseHandler(this);
 		numberOfSavedDataPoints = db.geDataPointCount();
@@ -265,22 +303,16 @@ public class MainActivity extends Activity implements SensorEventListener{
 		timer.scheduleAtFixedRate( new InsertDataPointTask(db,this), 1000,1000);
 
 		// ----------------------------------------------------------
-		// Get Stored data
-		SharedPreferences mostRecentData = getSharedPreferences(DATA_PREFS_NAME, 0);
-		float lastupdated_longitude = mostRecentData.getFloat("longitude", 0.0f);
-		float lastupdated_latitude = mostRecentData.getFloat("latitude", 0.0f);
-		float lastupdated_altitude = mostRecentData.getFloat("altitude", 0.0f);
-		String lastupdated_time = mostRecentData.getString("time", "--:--:-- --/--/----");
-
-		// ----------------------------------------------------------
 		// set up UI
 		tbtn_gps    = (ToggleButton) findViewById(R.id.tb_gatherGPSData);
 		tbtn_motion = (ToggleButton) findViewById(R.id.tb_gatherMotionDataX);
 		tbtn_light  = (ToggleButton) findViewById(R.id.tb_gatherLightData);
+		tbtn_pressure  = (ToggleButton) findViewById(R.id.tb_gatherPressureData);
 		
 		gpstable    = (TableLayout) findViewById(R.id.table_GPSData);
 		motiontable = (TableLayout) findViewById(R.id.table_MotionData);
 		lighttable  = (TableLayout) findViewById(R.id.table_LightData);
+		pressuretable  = (TableLayout) findViewById(R.id.table_PressureData);
 		txtview_CurrentLocationTitle = (TextView) findViewById(R.id.t_gpsTitleTextView);
 		txtview_CurrentLon = (TextView) findViewById(R.id.t_longitudeTextView);
 		txtview_CurrentLat = (TextView) findViewById(R.id.t_latitudeTextView);
@@ -295,18 +327,14 @@ public class MainActivity extends Activity implements SensorEventListener{
 		txtview_rotationY = (TextView) findViewById(R.id.t_rotationY);
 		txtview_rotationZ = (TextView) findViewById(R.id.t_rotationZ);
 		
-		txtview_light	= (TextView)findViewById(R.id.t_light);
+		txtview_light	    = (TextView)findViewById(R.id.t_light);
+		
+		txtview_pressure	= (TextView)findViewById(R.id.t_pressure);
 		
 		txtview_httpReult   = (TextView) findViewById(R.id.t_httpResultTextView);
-
-		// ----------------------------------------------------------
-		// fill UI with saved old data.
-		txtview_CurrentLon.setText(Float.toString(lastupdated_longitude) + "°");
-		txtview_CurrentLat.setText(Float.toString(lastupdated_latitude) + "°");
-		txtview_CurrentAlt.setText(Float.toString(lastupdated_altitude) + "m");
-		txtview_CurrentTime.setText(lastupdated_time);
-		txtview_PointsSaved.setText("" + numberOfSavedDataPoints);
-
+		turnOffAllDataCapture();
+		updateUI();
+		
 		// ----------------------------------------------------------
 		// check if you are connected or not
 		if (isConnected()) {
@@ -343,24 +371,6 @@ public class MainActivity extends Activity implements SensorEventListener{
 	public void onStop() {
 			Log.d(TAG, "Stopped");
 			activityVisible = false;
-
-			// ---Save View Info
-			if (lastLocation != null) {
-				// save the Last location into Shared Preferences so they can be
-				// displayed the next time the app starts
-				SharedPreferences mostRecentData = getSharedPreferences(DATA_PREFS_NAME, 0);
-				SharedPreferences.Editor editor = mostRecentData.edit();
-
-				editor.putFloat("longitude", (float) lastLocation.getLongitude());
-				editor.putFloat("latitude", (float) lastLocation.getLatitude());
-				editor.putFloat("altitude", (float) lastLocation.getAltitude());
-				time.set(lastLocation.getTime());
-				editor.putString("time", time.format("%H:%M:%S %m/%d/%Y"));
-
-				// Commit the edits!
-				editor.commit();
-			}
-
 			super.onStop();
 		}
 
@@ -404,20 +414,59 @@ public class MainActivity extends Activity implements SensorEventListener{
 		dialog.show();
 	}
 	
+	//http://howtodoinjava.com/2013/07/22/how-to-generate-secure-password-hash-md5-sha-pbkdf2-bcrypt-examples/
+    private static String getSalt() throws NoSuchAlgorithmException, NoSuchProviderException
+    {
+        //Always use a SecureRandom generator
+        SecureRandom sr = new SecureRandom();
+        //Create array for salt
+        byte[] salt = new byte[16];
+        //Get a random salt
+        sr.nextBytes(salt);
+        //return salt
+        return salt.toString();
+    }
+
+	public String generateOwnerHash(String _phonenmber)
+	{
+		 String generatedHash = null;
+		 try {
+	           
+		 	String salt = getSalt();
+		 	// Create MessageDigest instance for MD5
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            //Add password bytes to digest
+            md.update(salt.getBytes());
+            //Get the hash's bytes
+            byte[] bytes = md.digest(_phonenmber.getBytes());
+            //This bytes[] has bytes in decimal format;
+            //Convert it to hexadecimal format
+            StringBuilder sb = new StringBuilder();
+            for(int i=0; i< bytes.length ;i++)
+            {
+                sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+            }
+            //Get complete hashed password in hex format
+            generatedHash = sb.toString();
+        }
+        catch (NoSuchAlgorithmException e) {
+        	// TODO Auto-generated catch block
+        	e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return generatedHash;
+	}
+	
 	// ----------------------------------------------------------
 	// Data Functions
 	public void turnOffAllDataCapture(){
-		isCapturingGPSData    = false;
-		isCapturingMotionData = false;
-		isCapturingLightData  = false;
-				 
     	turnOffGPSDataCapture();
     	turnOffMotionDataCapture();
     	turnOffLightDataCapture();
-    	updateUI_DataFull();
-
+    	turnOffPressureDataCapture();
 	}
-	
 	
 	public void turnOnGPSDataCapture() {
 		if (numberOfSavedDataPoints < maxDataPoints) {   //There is room for more points. 
@@ -426,7 +475,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 			isCapturingGPSData = true;
 	
 			updateGPSViewStateStyle();
-			Toast.makeText(self, "Storing GPS Location Data on Local Device.", Toast.LENGTH_LONG).show();
+			
 		}
 		else
 		{
@@ -438,9 +487,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 		
 		isCapturingGPSData = false;
 		locationManager.removeUpdates(locationListener);
-
+		tbtn_gps.setChecked(false);
 		updateGPSViewStateStyle();
-		Toast.makeText(self, "No longer storing GPS Location Data.", Toast.LENGTH_LONG).show();
+		
 	}
 
 	public void turnOnMotionDataCapture() {
@@ -456,7 +505,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 			setTextViewStyle_Active(txtview_rotationY);
 			setTextViewStyle_Active(txtview_rotationZ);	
 			motiontable.setBackgroundColor(Color.argb(255, 157, 255, 208));
-			Toast.makeText(self, "Storing Motion Data on Local Device.", Toast.LENGTH_LONG).show();
+			
 		}
 		else
 		{
@@ -475,8 +524,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 		setTextViewStyle_Inactive(txtview_rotationX);
 		setTextViewStyle_Inactive(txtview_rotationY);
 		setTextViewStyle_Inactive(txtview_rotationZ);
+		tbtn_motion.setChecked(false);
 		motiontable.setBackgroundColor(Color.argb(255, 214, 214, 214));
-		Toast.makeText(self, "No longer storing Motion Data.", Toast.LENGTH_LONG).show();
+		
 	}
 	
 	public void turnOnLightDataCapture() {
@@ -487,7 +537,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 			setTextViewStyle_Active(txtview_light);
 			
 			lighttable.setBackgroundColor(Color.argb(255, 157, 255, 208));
-			Toast.makeText(self, "Storing Light Data on Local Device.", Toast.LENGTH_LONG).show();
+			
 		}
 		else
 		{
@@ -497,25 +547,54 @@ public class MainActivity extends Activity implements SensorEventListener{
 	}
 
 	public void turnOffLightDataCapture() {
-		isCapturingLightData = true;
+		isCapturingLightData = false;
 		sensorManager.unregisterListener(this,lightSensor);
 		setTextViewStyle_Inactive(txtview_light);
+		tbtn_light.setChecked(false);
 		
 		lighttable.setBackgroundColor(Color.argb(255, 214, 214, 214));
-		Toast.makeText(self, "No longer storing Light Data.", Toast.LENGTH_LONG).show();
+		
 	}
 	
+	public void turnOnPressureDataCapture() {
+		if (numberOfSavedDataPoints < maxDataPoints) {   //There is room for more points. 
+			
+			isCapturingPressureData = true;
+			sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
+			setTextViewStyle_Active(txtview_light);
+			
+			pressuretable.setBackgroundColor(Color.argb(255, 157, 255, 208));
+			
+		}
+		else
+		{
+			
+			updateUI_DataFull();
+		}
+	}
+
+	public void turnOffPressureDataCapture() {
+		isCapturingPressureData = false;
+		sensorManager.unregisterListener(this,pressureSensor);
+		setTextViewStyle_Inactive(txtview_pressure);
+		tbtn_pressure.setChecked(false);
+		
+		pressuretable.setBackgroundColor(Color.argb(255, 214, 214, 214));
+		
+	}
+
 	public void packDataPoints() {
 
 		ArrayList<DataPoint> datapoints = db.getAllDataPoints(); 
 		
     	JSONObject dataJSONObj = new JSONObject();
     	JSONArray pointsJsonArray =  new JSONArray();
-        try {
-
-			for (DataPoint  point : datapoints)
+        
+    	
+    	try {	
+        	for (DataPoint  point : datapoints)
 			{
-				point.setOwner(thisPhoneNumber);
+				point.setOwner(ownerID);
 				
 				JSONObject pointJsonObject =  new JSONObject();
 				//{"lon":10.0011001, "lat": 11.00111001, "alt" : 4.32220002, "time" : 1424635760000, "owner" : "+15054591694" }
@@ -538,6 +617,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 				
 				pointJsonObject.put("light", point.getBrightness());
 				
+				pointJsonObject.put("press", point.getPressure());
+				
 				pointsJsonArray.put( pointJsonObject );
 				
 			}
@@ -551,13 +632,14 @@ public class MainActivity extends Activity implements SensorEventListener{
         
         HttpAsyncTask httptask = new HttpAsyncTask(this);
         httptask.setJsonObjectToPost(dataJSONObj);
-        //txtview_httpReult.setText( ">>"+GPSData.toString());
+        //txtview_httpReult.setText( dataJSONObj.toString());
         httptask.execute(dataPostUrl);
 	}
 	
 	public void clearGPSData() {
 		db.clearDataPoints();
 		numberOfSavedDataPoints = db.geDataPointCount();
+		currentDataPoint.clear();
 		lastLocation = null;
 		txtview_CurrentLocationTitle.setText("GPS Location - None");
 		txtview_CurrentLocationTitle.setTextColor(Color.argb(255, 0, 0, 0));
@@ -570,31 +652,48 @@ public class MainActivity extends Activity implements SensorEventListener{
 	public void onToggleClicked_gatherGPSData(View view) {
 		if (((ToggleButton) view).isChecked()) {
 			turnOnGPSDataCapture();
+			Toast.makeText(self, "Storing GPS Data on Local Device.", Toast.LENGTH_SHORT).show();
 		} else {
 			turnOffGPSDataCapture();
+			Toast.makeText(self, "No longer storing GPS Data.", Toast.LENGTH_SHORT).show();
 		}
 	}
 
 	public void onToggleClicked_gatherMotionData(View view) {
 		if (((ToggleButton) view).isChecked()) {
 			turnOnMotionDataCapture();
-			
+			Toast.makeText(self, "Storing Motion Data on Local Device.", Toast.LENGTH_SHORT).show();	
 		} else {
 			turnOffMotionDataCapture();
+			Toast.makeText(self, "No longer storing Motion Data.", Toast.LENGTH_SHORT).show();
 		}
 	}
 	
 	public void onToggleClicked_gatherLightData(View view) {
 		if (((ToggleButton) view).isChecked()) {
 			turnOnLightDataCapture();
-			
+			Toast.makeText(self, "Storing Light Data on Local Device.", Toast.LENGTH_SHORT).show();
 		} else {
 			turnOffLightDataCapture();
+			Toast.makeText(self, "No longer storing Light Data.", Toast.LENGTH_SHORT).show();
+		}
+	}
+	
+	public void onToggleClicked_gatherPressureData(View view) {
+		if (((ToggleButton) view).isChecked()) {
+			turnOnPressureDataCapture();
+			Toast.makeText(self, "Storing Pressure Data on Local Device.", Toast.LENGTH_SHORT).show();
+		} else {
+			turnOffPressureDataCapture();
+			Toast.makeText(self, "No longer storing Pressure Data.", Toast.LENGTH_SHORT).show();
 		}
 	}
 	
 	
+	
 	public void onClickedSendDataPoints(View view) {
+		//So we are not writing to the db while sensitive stuff is happening. 
+		turnOffAllDataCapture();
 		
 		if (isConnected())
 		{
@@ -640,7 +739,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 	}
 
 	public void onClickedClearDataPoints(View view) {
-		
+		//So we are not writing to the db while sensitive stuff is happening. 
+		turnOffAllDataCapture();
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage("Are you sure you want to delete all saved GPS Data?");
@@ -716,31 +816,26 @@ public class MainActivity extends Activity implements SensorEventListener{
 
 		//Log.d(TAG, "UI Update");
 
-		if (lastLocation != null) {
-			// durationSeconds = getDurationSeconds(mLastLocation.getTime());
-			txtview_CurrentLocationTitle.setText("GPS Location - Current");
-			txtview_CurrentLon.setText(Double.toString(lastLocation.getLongitude()) + "°");
-			txtview_CurrentLat.setText(Double.toString(lastLocation.getLatitude()) + "°");
-			txtview_CurrentAlt.setText(Double.toString(lastLocation.getAltitude()) + "m");
-			txtview_PointsSaved.setText("" + numberOfSavedDataPoints);	
-		} else {
-			txtview_CurrentLon.setText(0.0f + "°");
-			txtview_CurrentLat.setText(0.0f + "°");
-			txtview_CurrentAlt.setText(0.0f + "m");
-			txtview_PointsSaved.setText("" + numberOfSavedDataPoints);
-		}
+		// durationSeconds = getDurationSeconds(mLastLocation.getTime());
+		txtview_CurrentLocationTitle.setText("GPS Location - Current");
+		txtview_CurrentLon.setText(Double.toString(currentDataPoint.getLongitude()) + "°");
+		txtview_CurrentLat.setText(Double.toString(currentDataPoint.getLatitude()) + "°");
+		txtview_CurrentAlt.setText(Double.toString(currentDataPoint.getAltitude()) + "m");
 		
 		txtview_CurrentTime.setText(time.format("%H:%M:%S %m/%d/%Y"));
 		
-  		txtview_accelX.setText(Float.toString(linear_acceleration[0]) + "m/s\u00B2");
-  		txtview_accelY.setText(Float.toString(linear_acceleration[1]) + "m/s\u00B2");
-  		txtview_accelZ.setText(Float.toString(linear_acceleration[2]) + "m/s\u00B2");
-		txtview_rotationX.setText(Float.toString(rotation[0]));
-		txtview_rotationY.setText(Float.toString(rotation[1]));
-		txtview_rotationZ.setText(Float.toString(rotation[2]));
+  		txtview_accelX.setText(Float.toString(currentDataPoint.getAccelx()) + "m/s\u00B2");
+  		txtview_accelY.setText(Float.toString(currentDataPoint.getAccely()) + "m/s\u00B2");
+  		txtview_accelZ.setText(Float.toString(currentDataPoint.getAccelz()) + "m/s\u00B2");
+		txtview_rotationX.setText(Float.toString(currentDataPoint.getRotationx()));
+		txtview_rotationY.setText(Float.toString(currentDataPoint.getRotationy()));
+		txtview_rotationZ.setText(Float.toString(currentDataPoint.getRotationz()));
 		
 		txtview_light.setText(Float.toString(currentDataPoint.getBrightness()));
 		
+		txtview_pressure.setText(Float.toString(currentDataPoint.getPressure())+"hPa");
+		
+		txtview_PointsSaved.setText("" + numberOfSavedDataPoints);
 	}
 
 	public void updateUI_DataFull()

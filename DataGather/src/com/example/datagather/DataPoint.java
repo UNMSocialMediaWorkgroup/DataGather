@@ -6,22 +6,21 @@ import org.json.JSONObject;
 public class DataPoint {
 
 	//private vars
-	double  longitude = 0.0f;
-	double  latitude  = 0.0f;
-	double  altitude  = 0.0f;
-	long     time     = 0;
-	float 	accelx = 0.0f;
-	float 	accely = 0.0f;
-	float 	accelz = 0.0f;
-	float 	rotationx = 0.0f;
-	float 	rotationy = 0.0f;
-	float 	rotationz = 0.0f;
-	float 	brightness = 0.0f;
+	private double  longitude = 0.0f;
+	private double  latitude  = 0.0f;
+	private double  altitude  = 0.0f;
+	private long    time     = 0;
+	private float 	accelx = 0.0f;
+	private float 	accely = 0.0f;
+	private float 	accelz = 0.0f;
+	private float 	rotationx = 0.0f;
+	private float 	rotationy = 0.0f;
+	private float 	rotationz = 0.0f;
+	private float 	brightness = 0.0f;
+	private float 	pressure = 0.0f;
 	
 	boolean written = false;
 	
-
-
 	String owner = "";
 	
 	public String getOwner() {
@@ -99,6 +98,12 @@ public class DataPoint {
 	public void setBrightness(float brightness) {
 		this.brightness = brightness;
 	}
+	public float getPressure() {
+		return pressure;
+	}
+	public void setPressure(float pressure) {
+		this.pressure = pressure;
+	}
 	public void clear()
 	{
 		longitude = 0.0f;
@@ -111,6 +116,8 @@ public class DataPoint {
 		rotationx = 0.0f;
 		rotationy = 0.0f;
 		rotationz = 0.0f;
+		brightness = 0.0f;
+		pressure = 0.0f;
 		
 		written = false; 
 	}
@@ -134,6 +141,7 @@ public class DataPoint {
 				"accel:"+accelx+","+accely+","+accelz+"\n "+ 
 				"rot:"+rotationz+","+rotationy+","+rotationz+"\n"+
 				"light:"+brightness+"\n"+
+				"pressure:"+pressure+"\n"+
 				"time:" + time + ",owner:"+owner+"]";
 				
 	}

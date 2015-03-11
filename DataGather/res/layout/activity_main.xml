@@ -242,6 +242,47 @@
         </TableRow>
 	</TableLayout>
 	
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <ToggleButton
+            android:id="@+id/tb_gatherPressureData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onToggleClicked_gatherPressureData" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="left"
+            android:paddingRight="5sp"
+            android:text="Capture Pressure Data" />
+    </LinearLayout>
+
+    <TableLayout
+        android:id="@+id/table_PressureData"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:paddingRight="5sp"
+                android:text="pressure" />
+
+            <TextView
+                android:id="@+id/t_pressure"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </TableRow>
+	</TableLayout>
+	
     <TextView
         android:id="@+id/t_metaTitleTextView"
         android:layout_width="wrap_content"

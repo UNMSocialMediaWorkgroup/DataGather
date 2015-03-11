@@ -13,7 +13,7 @@ import android.util.Log;
 public class DatabaseHandler extends SQLiteOpenHelper {
 
 	private static final String TAG = ">>DB Handeler";
-	private static final int DATABASE_VERSION = 3;
+	private static final int DATABASE_VERSION = 4;
 	private static final String DATABASE_NAME = "gathereddata";
 	
 	//GPS 
@@ -29,6 +29,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_ROTY  = "rotationY";
     private static final String KEY_ROTZ  = "rotationZ";
     private static final String KEY_BRGHT = "Brightness";
+    private static final String KEY_PRESS = "pressure";
 	
     private static final String CREATE_POINTS_TABLE = "CREATE TABLE " + TABLE_POINTS + "( "
 			+ KEY_LON   + " DOUBLE, "
@@ -41,7 +42,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			+ KEY_ROTX  + " FLOAT, "
 			+ KEY_ROTY  + " FLOAT, "
 			+ KEY_ROTZ  + " FLOAT, "
-			+ KEY_BRGHT + " FLOAT "
+			+ KEY_BRGHT + " FLOAT, "
+			+ KEY_PRESS + " FLOAT "
 			+ ")";
     
     
@@ -82,6 +84,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		values.put(KEY_ROTY,   point.getRotationy());
 		values.put(KEY_ROTZ,   point.getRotationz());
 		values.put(KEY_BRGHT,  point.getBrightness());
+		values.put(KEY_PRESS,  point.getPressure());
 		
         db.insert(TABLE_POINTS, null, values);
         db.close(); // Closing database connection
@@ -112,7 +115,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             	point.setRotationy( cursor.getFloat(8));
             	point.setRotationz( cursor.getFloat(9));
             	point.setBrightness(cursor.getFloat(10));
-                // Adding gps point to list
+            	point.setPressure(  cursor.getFloat(11));
+            	// Adding data point to list
             	pointList.add(point);
             } while (cursor.moveToNext());
         }

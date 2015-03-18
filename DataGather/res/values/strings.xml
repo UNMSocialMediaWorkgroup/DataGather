@@ -2,8 +2,32 @@
 <resources>
 
     <string name="app_name">DataGather</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 	<string name="gps_enabled">GPS Enabled</string>
     <string name="gps_disabled">GPS Disabled</string>
+    <string name=" updates"></string>
+    <string name="eula">PRIVACY POLICY\n
+The DataGather Android App is for data collection purposes only.\n
+\n
+The DataGather Android App collects GPS data, positional data, light sensor data, and other related data only.\n
+\n
+The type of data collected is solely at the discretion of the user.\n
+\n
+The user has the right to delete the DataGather Android App at any time and avoid future data collection.\n
+\n
+Collected data is made public, specifically to the students and staff at the University of New Mexico and Arizona State University.\n
+\n
+If we decide to change this privacy policy we will post the changes here.\n
+\n
+This policy was last modified March 11, 2015.\n
+\n
+Contact us: andrea@andreapolli.com\n
+\n
+DISCLAIMER\n
+\n
+This is an educational and experimental prototype.  All data collection is worked on by the students of UNM’s Social Media Workgroup and courses (socialmedia.carc.unm.edu). \n 
+\n
+Prototypes by definition are unfinished products.  Any feedback is much appreciated.\n</string>
+    
+    
 </resources>

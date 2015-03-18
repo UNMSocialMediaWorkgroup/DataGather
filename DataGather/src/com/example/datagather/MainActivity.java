@@ -138,7 +138,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 		
 
 		if (activityVisible) {
-			updateUI();
+			updateUI_GPS();
+			updateUI_stats();
 		}
 
 	}
@@ -171,6 +172,11 @@ public class MainActivity extends Activity implements SensorEventListener{
 			currentDataPoint.setAccely(linear_acceleration[1]);
 			currentDataPoint.setAccelz(linear_acceleration[2]);
 			currentDataPoint.setWritten();
+			
+			if (activityVisible) {
+				updateUI_Motion();
+				updateUI_stats();
+			}  
 
         }
         else if (sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
@@ -187,6 +193,11 @@ public class MainActivity extends Activity implements SensorEventListener{
 			currentDataPoint.setRotationy(rotation[1]);
 			currentDataPoint.setRotationz(rotation[2]);
 			currentDataPoint.setWritten();
+			
+			if (activityVisible) {
+				updateUI_Motion();
+				updateUI_stats();
+			}  
         	
         
         }else  if(event.sensor.getType() == Sensor.TYPE_LIGHT){
@@ -196,6 +207,11 @@ public class MainActivity extends Activity implements SensorEventListener{
     		currentDataPoint.setTime(time.toMillis(false));
 			currentDataPoint.setBrightness(event.values[0]);
 			currentDataPoint.setWritten();
+			
+			if (activityVisible) {
+				updateUI_Light();
+				updateUI_stats();
+			}  
         	
         }else  if(event.sensor.getType() == Sensor.TYPE_PRESSURE){
     	//Log.d(TAG, "Got Pressure: " + event.values[0]);    	
@@ -203,14 +219,17 @@ public class MainActivity extends Activity implements SensorEventListener{
 			currentDataPoint.setTime(time.toMillis(false));
 			currentDataPoint.setPressure(event.values[0]);
 			currentDataPoint.setWritten();
+			
+			if (activityVisible) {
+				updateUI_Pressure();
+				updateUI_stats();
+			}  
     	
         }
         
        
         
-        if (activityVisible) {
-			updateUI();
-		}  
+        
 	}
 	
 	
@@ -219,6 +238,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		Log.d(TAG, "Created");
+		
+		new SimpleEula(this).show();
+		
 		// ----------------------------------------------------------
 		// Get Telephone Number for ID. 
 		TelephonyManager tMgr = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
@@ -333,7 +355,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 		
 		txtview_httpReult   = (TextView) findViewById(R.id.t_httpResultTextView);
 		turnOffAllDataCapture();
-		updateUI();
+		updateUI_All();
 		
 		// ----------------------------------------------------------
 		// check if you are connected or not
@@ -401,7 +423,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 
 		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
-				clearGPSData();
+				clearData();
 			}
 		});
 		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -636,14 +658,14 @@ public class MainActivity extends Activity implements SensorEventListener{
         httptask.execute(dataPostUrl);
 	}
 	
-	public void clearGPSData() {
+	public void clearData() {
 		db.clearDataPoints();
 		numberOfSavedDataPoints = db.geDataPointCount();
 		currentDataPoint.clear();
 		lastLocation = null;
 		txtview_CurrentLocationTitle.setText("GPS Location - None");
 		txtview_CurrentLocationTitle.setTextColor(Color.argb(255, 0, 0, 0));
-		updateUI();
+		updateUI_All();
 		Toast.makeText(self, "Data deleted.", Toast.LENGTH_LONG).show();
 	}
 
@@ -688,8 +710,6 @@ public class MainActivity extends Activity implements SensorEventListener{
 			Toast.makeText(self, "No longer storing Pressure Data.", Toast.LENGTH_SHORT).show();
 		}
 	}
-	
-	
 	
 	public void onClickedSendDataPoints(View view) {
 		//So we are not writing to the db while sensitive stuff is happening. 
@@ -748,7 +768,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 
 		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
-				clearGPSData();
+				clearData();
 			}
 		});
 		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -812,7 +832,16 @@ public class MainActivity extends Activity implements SensorEventListener{
 		// textview.setBackgroundColor(Color.argb(255, 214, 214, 214));
 	}
 
-	public void updateUI() {
+	public void updateUI_All() {
+		updateUI_GPS();
+		updateUI_Motion();
+		updateUI_Light();
+		updateUI_Pressure();
+		updateUI_stats();
+	}
+	
+	
+	public void updateUI_GPS() {
 
 		//Log.d(TAG, "UI Update");
 
@@ -820,23 +849,32 @@ public class MainActivity extends Activity implements SensorEventListener{
 		txtview_CurrentLocationTitle.setText("GPS Location - Current");
 		txtview_CurrentLon.setText(Double.toString(currentDataPoint.getLongitude()) + "°");
 		txtview_CurrentLat.setText(Double.toString(currentDataPoint.getLatitude()) + "°");
-		txtview_CurrentAlt.setText(Double.toString(currentDataPoint.getAltitude()) + "m");
-		
-		txtview_CurrentTime.setText(time.format("%H:%M:%S %m/%d/%Y"));
-		
+		txtview_CurrentAlt.setText(Double.toString(currentDataPoint.getAltitude()) + "m");	
+	}
+	
+	public void updateUI_Motion() {
   		txtview_accelX.setText(Float.toString(currentDataPoint.getAccelx()) + "m/s\u00B2");
   		txtview_accelY.setText(Float.toString(currentDataPoint.getAccely()) + "m/s\u00B2");
   		txtview_accelZ.setText(Float.toString(currentDataPoint.getAccelz()) + "m/s\u00B2");
 		txtview_rotationX.setText(Float.toString(currentDataPoint.getRotationx()));
 		txtview_rotationY.setText(Float.toString(currentDataPoint.getRotationy()));
-		txtview_rotationZ.setText(Float.toString(currentDataPoint.getRotationz()));
-		
+		txtview_rotationZ.setText(Float.toString(currentDataPoint.getRotationz()));	
+	}
+	
+	public void updateUI_Light() {
 		txtview_light.setText(Float.toString(currentDataPoint.getBrightness()));
-		
-		txtview_pressure.setText(Float.toString(currentDataPoint.getPressure())+"hPa");
-		
+	}
+	
+	public void updateUI_Pressure() {
+		txtview_pressure.setText(Float.toString(currentDataPoint.getPressure())+"hPa");	
+	}
+	
+	public void updateUI_stats() {
+		txtview_CurrentTime.setText(time.format("%H:%M:%S %m/%d/%Y"));
 		txtview_PointsSaved.setText("" + numberOfSavedDataPoints);
 	}
+	
+	
 
 	public void updateUI_DataFull()
 	{

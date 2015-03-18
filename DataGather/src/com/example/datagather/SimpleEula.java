@@ -1,4 +1,7 @@
 package com.example.datagather;
+//Code From
+//http://www.donnfelker.com/android-a-simple-eula-for-your-android-apps/
+
 
 import android.app.Activity;
 import android.app.AlertDialog;

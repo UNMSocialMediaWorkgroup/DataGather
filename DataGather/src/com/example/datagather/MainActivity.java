@@ -64,7 +64,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	//-----Network
 	private boolean networkConnected   = false;
-	private  String dataPostUrl = "http://104.236.211.212:3000/submitdatapoint";
+	private  String dataPostUrl = "http://104.236.211.212/submitdatapoint";
+	//private  String dataPostUrl = "http://45.55.132.67/submitdatapoint";
 	private  String thisPhoneNumber = "";
 	private  String ownerID = "";
 	
@@ -124,6 +125,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	private TextView txtview_accelX, txtview_accelY, txtview_accelZ, txtview_rotationX,txtview_rotationY,txtview_rotationZ;
 	private TextView txtview_light;
 	private TextView txtview_pressure;
+	private TextView txtview_userID;
 	private TextView txtview_httpReult;
 
 	void onLocationReceived(Location loc) {
@@ -261,7 +263,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 			editor.commit();
 		}
 		Log.d(TAG, "OWNER ID : "+ownerID);
-		
+		txtview_userID   = (TextView) findViewById(R.id.t_userId);
+		txtview_userID.setText("User ID : " + ownerID);
 		
 		
 		// ----------------------------------------------------------
@@ -583,7 +586,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 			
 			isCapturingPressureData = true;
 			sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
-			setTextViewStyle_Active(txtview_light);
+			setTextViewStyle_Active(txtview_pressure);
 			
 			pressuretable.setBackgroundColor(Color.argb(255, 157, 255, 208));
 			

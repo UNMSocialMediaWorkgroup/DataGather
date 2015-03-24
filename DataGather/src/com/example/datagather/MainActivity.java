@@ -71,6 +71,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	private static final String PREFS_NETWORK = "Network";
 	private static final String PREFS_NETWORK_OWNERID = "ownerID";
+	private static final String PREFS_NETWORK_POSTURL = "postURL";
 
 	//-----DB
 	DatabaseHandler db;
@@ -265,6 +266,12 @@ public class MainActivity extends Activity implements SensorEventListener{
 		Log.d(TAG, "OWNER ID : "+ownerID);
 		txtview_userID   = (TextView) findViewById(R.id.t_userId);
 		txtview_userID.setText("User ID : " + ownerID);
+		
+		//get saved data url to post. 
+		dataPostUrl = networkPrefs.getString(PREFS_NETWORK_POSTURL, "http://104.236.211.212/submitdatapoint");
+		SharedPreferences.Editor editor = networkPrefs.edit();
+		editor.putString(PREFS_NETWORK_POSTURL,dataPostUrl);
+		editor.commit();
 		
 		
 		// ----------------------------------------------------------

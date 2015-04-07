@@ -122,7 +122,7 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String result) {
     	
-    	((MainActivity) context).httpPOSTResult(result);
+    	((MainActivity) context).checkToContinuePost(result);
     	
     	
    }

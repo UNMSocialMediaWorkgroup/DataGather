@@ -72,6 +72,13 @@ public class MainActivity extends Activity implements SensorEventListener{
 	private static final String PREFS_NETWORK = "Network";
 	private static final String PREFS_NETWORK_OWNERID = "ownerID";
 	private static final String PREFS_NETWORK_POSTURL = "postURL";
+	
+	//---Network posts in chunks. Horrible hack
+	private int post_chunksize = 25; 
+	private ArrayList<DataPoint> post_datapoints;
+	private int post_index = 0; 
+	private String post_result_success = "Data received successfully.";
+	
 
 	//-----DB
 	DatabaseHandler db;
@@ -615,17 +622,66 @@ public class MainActivity extends Activity implements SensorEventListener{
 		
 	}
 
+	public void postDataPoints() {
+		
+		Log.d(TAG, "Posting DataPoints.");
+		post_datapoints = db.getAllDataPoints();
+		post_index = 0;
+		
+		packDataPoints();
+	}
+	
+	public void checkToContinuePost(String result)
+	{
+		
+		//Log.d(TAG, "Checking Post : res="+result+" succ="+post_result_success);
+		if(result.equals(post_result_success))
+		{
+			if( post_index < post_datapoints.size() ) //more to go. 
+			{
+				packDataPoints();
+			}
+			else
+			{
+				//clear globals
+				post_datapoints = new ArrayList<DataPoint>();
+				post_index = 0;
+				//show success
+				httpPOSTResult(result);	
+			}
+		
+		}
+		else //error something went wrong. Print it. 
+		{
+			Log.d(TAG, "Error with Post : res = \""+result+"\"");
+			httpPOSTResult(result);	
+		}
+		
+		
+		
+		
+	}
+	
 	public void packDataPoints() {
 
-		ArrayList<DataPoint> datapoints = db.getAllDataPoints(); 
+		Log.d(TAG, "Packing DataPoints "+post_index+" to "+(post_index+post_chunksize)+" out of "+post_datapoints.size());
+		
 		
     	JSONObject dataJSONObj = new JSONObject();
     	JSONArray pointsJsonArray =  new JSONArray();
         
-    	
     	try {	
-        	for (DataPoint  point : datapoints)
-			{
+        	
+    		for(int i = post_index; i < post_index+post_chunksize; i++)
+        	{
+    		
+        		if(i >= post_datapoints.size())//all done. Not full sized chunk
+        		{
+        			break;
+        		}
+        		
+    			DataPoint point = post_datapoints.get(i);
+        		
 				point.setOwner(ownerID);
 				
 				JSONObject pointJsonObject =  new JSONObject();
@@ -656,6 +712,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 			}
 			
 			dataJSONObj.put("data", pointsJsonArray);
+			
+			post_index += post_chunksize;
 		
         } catch (JSONException e) {
 			// TODO Auto-generated catch block
@@ -735,7 +793,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 
 			builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
-					packDataPoints();
+					postDataPoints();
 				}
 			});
 			builder.setNegativeButton("No", new DialogInterface.OnClickListener() {

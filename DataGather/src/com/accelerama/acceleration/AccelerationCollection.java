@@ -2,9 +2,6 @@ package com.accelerama.acceleration;
 
 import com.accelerama.compression.ByteReader;
 import com.accelerama.compression.ByteWriter;
-import com.lunagameserve.nbt.NBTException;
-import com.lunagameserve.nbt.NBTSerializableListAdapter;
-import com.lunagameserve.nbt.Tag;
 
 import java.io.IOException;
 import java.io.InputStream;

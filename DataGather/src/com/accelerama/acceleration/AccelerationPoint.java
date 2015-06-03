@@ -2,9 +2,6 @@ package com.accelerama.acceleration;
 
 import com.accelerama.compression.ByteReader;
 import com.accelerama.compression.ByteWriter;
-import com.lunagameserve.nbt.NBTException;
-import com.lunagameserve.nbt.NBTSerializableObject;
-import com.lunagameserve.nbt.Tag;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,14 +40,7 @@ public class AccelerationPoint {
         return timestamp;
     }
 
-    public Tag.Compound toCompound() throws NBTException {
-        return new Tag.Compound.Builder()
-                .addFloat("x", values[0])
-                .addFloat("y", values[1])
-                .addFloat("z", values[2])
-                .addLong("t", timestamp)
-                .toCompound("accelerationPoint");
-    }
+ 
 
     public void writeAsBytes(OutputStream out) throws IOException {
         ByteWriter writer = new ByteWriter(out);
@@ -76,10 +66,5 @@ public class AccelerationPoint {
         return modulus < 1000;
     }
 
-    public void fromCompound(Tag.Compound compound) {
-        this.values[0] = compound.getFloat("x");
-        this.values[1] = compound.getFloat("y");
-        this.values[2] = compound.getFloat("z");
-        this.timestamp = compound.getLong("t");
-    }
+   
 }

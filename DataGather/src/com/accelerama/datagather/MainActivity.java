@@ -67,7 +67,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	//-----Network
 	private boolean networkConnected   = false;
-	private  String dataPostUrl = "http://104.236.211.212/submitdatapoint";
+	private  String dataPostUrl = ""; //stored in prefs
+	//private  String dataPostUrl = "http://104.236.211.212/submitdatapoint";
 	//private  String dataPostUrl = "http://45.55.132.67/submitdatapoint";
 	private  String thisPhoneNumber = "";
 	private  String ownerID = "";
@@ -138,6 +139,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 	private TextView txtview_pressure;
 	private TextView txtview_userID;
 	private TextView txtview_httpReult;
+	
+	
+	
 
 	void onLocationReceived(Location loc) {
 		lastLocation = loc;
@@ -274,7 +278,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 		txtview_userID.setText("User ID : " + ownerID);
 		
 		//get saved data url to post. 
-		dataPostUrl = networkPrefs.getString(PREFS_NETWORK_POSTURL, "http://104.236.211.212/submitdatapoint");
+		dataPostUrl = networkPrefs.getString(PREFS_NETWORK_POSTURL, "http://socialmedia.hpc.unm.edu:3000/submitdatapoint");
 		SharedPreferences.Editor editor = networkPrefs.edit();
 		editor.putString(PREFS_NETWORK_POSTURL,dataPostUrl);
 		editor.commit();
@@ -434,8 +438,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 	public void httpPOSTResult(String result)
 	{
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage(result.toString()+"\n\nDo you want to delete all locally saved GPS Data?");
-		builder.setTitle("GPS Data");
+		builder.setMessage(result.toString()+"\n\nDo you want to delete all locally saved Data?");
+		builder.setTitle("Data Points");
 
 		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
@@ -633,7 +637,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 	public void checkToContinuePost(String result)
 	{
 		
-		//Log.d(TAG, "Checking Post : res="+result+" succ="+post_result_success);
+		Log.d(TAG, "Checking Post : res="+result+" succ="+post_result_success);
+		
+		//**TODO** Make the result check the httpcode not the content of the message
 		if(result.equals(post_result_success))
 		{
 			if( post_index < post_datapoints.size() ) //more to go. 
@@ -719,7 +725,8 @@ public class MainActivity extends Activity implements SensorEventListener{
         
         HttpAsyncTask httptask = new HttpAsyncTask(this);
         httptask.setJsonObjectToPost(dataJSONObj);
-        //txtview_httpReult.setText( dataJSONObj.toString());
+        txtview_httpReult.setText( dataJSONObj.toString());
+        Log.d(TAG, "Posting to "+dataPostUrl);
         httptask.execute(dataPostUrl);
 	}
 	

@@ -121,7 +121,7 @@ class HttpAsyncTask extends AsyncTask<String, Void, String> {
     // onPostExecute displays the results of the AsyncTask.
     @Override
     protected void onPostExecute(String result) {
-    	
+    	Log.d("HTTP", "Checking Post : res="+result);
     	((MainActivity) context).checkToContinuePost(result);
     	
     	

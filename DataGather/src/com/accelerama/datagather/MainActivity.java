@@ -67,11 +67,12 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	//-----Network
 	private boolean networkConnected   = false;
-	private  String dataPostUrl = ""; //stored in prefs
+	//private  String dataPostUrl = ""; //stored in prefs
+	private  String dataPostUrl_subdirectory = "/submitdatapoint"; //gets concatenated to the end of the url 
 	//private  String dataPostUrl = "http://104.236.211.212/submitdatapoint";
 	//private  String dataPostUrl = "http://45.55.132.67/submitdatapoint";
 	private  String thisPhoneNumber = "";
-	private  String ownerID = "";
+	//private  String ownerID = "";
 	
 	private static final String PREFS_NETWORK = "Network";
 	private static final String PREFS_NETWORK_OWNERID = "ownerID";
@@ -260,9 +261,11 @@ public class MainActivity extends Activity implements SensorEventListener{
 		thisPhoneNumber = tMgr.getLine1Number();
 		
 		// ----------------------------------------------------------
-		// Get Owner Hash or generate a new one if it hasn't been created. 
 		SharedPreferences networkPrefs = getSharedPreferences(PREFS_NETWORK, 0);
-		ownerID = networkPrefs.getString(PREFS_NETWORK_OWNERID, "NO_ID");
+		
+		
+		// Get Owner Hash or generate a new one if it hasn't been created. 
+		String ownerID = networkPrefs.getString(PREFS_NETWORK_OWNERID, "NO_ID");
 		//if no ID generate new one. 
 		if(ownerID.equals("NO_ID") || ownerID == null )
 		{
@@ -277,8 +280,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 		txtview_userID   = (TextView) findViewById(R.id.t_userId);
 		txtview_userID.setText("User ID : " + ownerID);
 		
-		//get saved data url to post. 
-		dataPostUrl = networkPrefs.getString(PREFS_NETWORK_POSTURL, "http://socialmedia.hpc.unm.edu:3000/submitdatapoint");
+		//this loads the default address into the prefrences on the first start of the app and otherwise keeps the stored one
+		String dataPostUrl = networkPrefs.getString(PREFS_NETWORK_POSTURL, "http://socialmedia.hpc.unm.edu:3000");
 		SharedPreferences.Editor editor = networkPrefs.edit();
 		editor.putString(PREFS_NETWORK_POSTURL,dataPostUrl);
 		editor.commit();
@@ -669,6 +672,10 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	public void packDataPoints() {
 
+		SharedPreferences networkPrefs = getSharedPreferences(PREFS_NETWORK, 0);
+		
+		String ownerID = networkPrefs.getString(PREFS_NETWORK_OWNERID, "NO_ID");
+		
 		Log.d(TAG, "Packing DataPoints "+post_index+" to "+(post_index+post_chunksize)+" out of "+post_datapoints.size());
 		
 		
@@ -724,10 +731,36 @@ public class MainActivity extends Activity implements SensorEventListener{
 		}
         
         HttpAsyncTask httptask = new HttpAsyncTask(this);
+       
         httptask.setJsonObjectToPost(dataJSONObj);
-        txtview_httpReult.setText( dataJSONObj.toString());
-        Log.d(TAG, "Posting to "+dataPostUrl);
-        httptask.execute(dataPostUrl);
+        //txtview_httpReult.setText( dataJSONObj.toString()); // for debuging 
+        
+        String dataPostUrl = networkPrefs.getString(PREFS_NETWORK_POSTURL, "NO_POSTURL");
+    	if(dataPostUrl.equals("NO_POSTURL") ||dataPostUrl == null )
+		{
+    		Log.d(TAG, "Error: No Post URL in Prefs! : "+dataPostUrl);
+    		
+    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setMessage("ERROR: There is no post url stored in the network prefrences. Something horrible happened. Try reinstalling DataGather and reporting issue.");
+			builder.setTitle("Data");
+
+			builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+				}
+			});
+			
+			AlertDialog dialog = builder.create();
+			dialog.show();
+    		
+		}
+    	else
+    	{
+    		  Log.d(TAG, "Posting to "+dataPostUrl+dataPostUrl_subdirectory);
+    	        
+    	      httptask.execute(dataPostUrl+dataPostUrl_subdirectory);
+    	}
+        
+      
 	}
 	
 	public void clearData() {
@@ -789,25 +822,49 @@ public class MainActivity extends Activity implements SensorEventListener{
 		
 		if (isConnected())
 		{
-			numberOfSavedDataPoints = db.getDataPointCount();
+			SharedPreferences networkPrefs = getSharedPreferences(PREFS_NETWORK, 0);
+			String dataPostUrl = networkPrefs.getString(PREFS_NETWORK_POSTURL, "NO_POSTURL");
+	    	
+			if(dataPostUrl.equals("NO_POSTURL") ||dataPostUrl == null )
+			{
+	    		Log.d(TAG, "Error: No Post URL in Prefs! : "+dataPostUrl);
+	    		
+	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setMessage("ERROR: There is no post url stored in the network prefrences. Something horrible happened. Try reinstalling DataGather and reporting issue.");
+				builder.setTitle("Data");
+
+				builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+					}
+				});
+				
+				AlertDialog dialog = builder.create();
+				dialog.show();
+	    		
+			}
+	    	else
+	    	{
 			
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setMessage("Sending " + numberOfSavedDataPoints + "  Data Points. Would you like to continue?");
-			builder.setTitle("Data");
-
-			builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					postDataPoints();
-				}
-			});
-			builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					// User cancelled the dialog
-				}
-			});
-
-			AlertDialog dialog = builder.create();
-			dialog.show();
+				numberOfSavedDataPoints = db.getDataPointCount();
+				
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setMessage("Sending " + numberOfSavedDataPoints + " Data Points to "+dataPostUrl+".\n Would you like to continue?");
+				builder.setTitle("Data");
+	
+				builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						postDataPoints();
+					}
+				});
+				builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						// User cancelled the dialog
+					}
+				});
+	
+				AlertDialog dialog = builder.create();
+				dialog.show();
+	    	}
 			
 		}
 		else
@@ -857,6 +914,12 @@ public class MainActivity extends Activity implements SensorEventListener{
 		Intent intent = new Intent(this, DataViewActivity.class);
 		startActivity(intent);
 	}
+	
+	public void onClickedSettings() {
+		Intent intent = new Intent(this, SettingsActivity.class);
+		startActivity(intent);
+	}
+
 
 	// ----------------------------------------------------------
 	// View Functions
@@ -911,7 +974,6 @@ public class MainActivity extends Activity implements SensorEventListener{
 		updateUI_Pressure();
 		updateUI_stats();
 	}
-	
 	
 	public void updateUI_GPS() {
 
@@ -984,6 +1046,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
 		if (id == R.id.action_settings) {
+			onClickedSettings();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);

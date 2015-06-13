@@ -34,6 +34,10 @@
       		android:name="com.accelerama.datagather.DataViewActivity"
       		android:label="@string/app_name" >
    		</activity>
+   		<activity
+      		android:name="com.accelerama.datagather.SettingsActivity"
+      		android:label="@string/app_name" >
+   		</activity>
         
         
     </application>

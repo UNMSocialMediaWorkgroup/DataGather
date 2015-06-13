@@ -1,0 +1,97 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#70a8d3"
+        android:textColor="#ffffff"
+        android:text="Settings"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/txt_settings_idtitle"
+            android:layout_width="72dp"
+            android:layout_height="wrap_content"
+            android:text="User ID : "
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/txt_settings_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="---------------------------------"
+            android:gravity="left"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txt_settings_posturl_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="\nData Post Address"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/txt_settings_posturl_info1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="#6e6e6e"
+        android:text="This is the address data will be sent to."
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+
+    <EditText
+        android:id="@+id/etxt_settings_posturl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10">
+   	    <requestFocus />
+    </EditText>
+    
+    <TextView
+        android:id="@+id/txt_settings_posturl_info2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#6e6e6e"
+         android:gravity="center"
+        android:text="example: socialmedia.hpc.unm.edu:3000"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="53dp" >
+
+        <Button
+            android:id="@+id/btn_settings_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="20dp"
+            android:onClick="onClickCancel"
+            android:text="Cancel" />
+
+        <Button
+            android:id="@+id/btn_settings_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="30dp"
+            android:onClick="onClickSaveSettings"
+            android:text="Save" />
+
+    </RelativeLayout>
+  
+</LinearLayout>

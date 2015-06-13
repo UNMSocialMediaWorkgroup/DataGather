@@ -25,9 +25,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 public class DataViewActivity extends Activity {
-	private static final String TAG = ">>GPS Data View";
+	private static final String TAG = ">>Data View";
 	private Activity self = this;
+	
 	private DatabaseHandler db;
+	
 	private ArrayList<DataPoint> gpsPointList;
 	private ListView listview;
 	private DataPointArrayAdapter adapter;
